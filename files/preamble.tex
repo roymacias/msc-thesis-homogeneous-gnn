@@ -49,28 +49,12 @@
 % Prints a trailing space in a smart way.
 \usepackage{xspace}
 
-%%
-% Some shortcuts for Tufte's book titles.  The lowercase commands will
-% produce the initials of the book title in italics.  The all-caps commands
-% will print out the full title of the book in italics.
-\newcommand{\vdqi}{\textit{VDQI}\xspace}
-\newcommand{\ei}{\textit{EI}\xspace}
-\newcommand{\ve}{\textit{VE}\xspace}
-\newcommand{\be}{\textit{BE}\xspace}
-\newcommand{\VDQI}{\textit{The Visual Display of Quantitative Information}\xspace}
-\newcommand{\EI}{\textit{Envisioning Information}\xspace}
-\newcommand{\VE}{\textit{Visual Explanations}\xspace}
-\newcommand{\BE}{\textit{Beautiful Evidence}\xspace}
-
-\newcommand{\TL}{Tufte-\LaTeX\xspace}
-
 % Prints the month name (e.g., January) and the year (e.g., 2008)
 \newcommand{\monthyear}{%
   \ifcase\month\or January\or February\or March\or April\or May\or June\or
   July\or August\or September\or October\or November\or
   December\fi\space\number\year
 }
-
 
 % Prints an epigraph and speaker in sans serif, all-caps type.
 \newcommand{\openepigraph}[2]{%
@@ -140,10 +124,6 @@
 \newcommand{\docmsg}[2]{\bigskip\begin{fullwidth}\noindent\ttfamily#1\end{fullwidth}\medskip\par\noindent#2}
 \newcommand{\docfilehook}[2]{\texttt{#1}\index{file hooks!#2}\index{#1@\texttt{#1}}}
 \newcommand{\doccounter}[1]{\texttt{#1}\index{#1 counter@\texttt{#1} counter}}
-
-% Generates the index
-\usepackage{makeidx}
-\makeindex
 
 %Defining ITESO blue scale
 \definecolor{itesodblue}{cmyk}{1, 0.58, 0.09, 0.42}
