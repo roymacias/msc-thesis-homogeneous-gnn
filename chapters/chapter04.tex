@@ -1,0 +1,256 @@
+\chapter{Neural Networks and Their Limitations on Relational Data}
+\label{ch:nn-limitations}
+\minitoc
+
+The preceding chapters established what graphs are and the tasks defined on
+them. Before constructing a model that operates on graphs, it is necessary to
+examine the standard tool of deep learning, the multilayer perceptron.
+This chapter first assembles the multilayer
+perceptron and the procedure by which it is trained, so that it stands as a
+complete and well-defined object. It then attempts to apply this model to a
+graph and shows that the attempt fails. The reasons for that failure are not
+incidental: they identify precisely the properties a model must possess to
+operate on graphs and motivate the developments 
+presented in the following chapters.
+
+\section{The Multilayer Perceptron}
+\label{sec:mlp}
+
+The \textit{multilayer perceptron} (MLP) is the elementary feedforward neural
+network. It maps a fixed-size input vector to an
+output vector through a sequence of layers, each applying a linear
+transformation followed by a nonlinear function~\cite{bishop2024}.
+
+A single layer takes a vector and produces another vector. Writing
+$\mathbf{h}^{(l-1)}$ for the input to layer $l$ and $\mathbf{h}^{(l)}$ for its
+output, the layer computes
+\begin{equation}
+  \mathbf{h}^{(l)} = \sigma\!\left(
+    \mathbf{W}^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}
+  \right),
+  \label{eq:mlp-layer}
+\end{equation}
+where $\mathbf{W}^{(l)}$ is a learnable weight matrix, $\mathbf{b}^{(l)}$ a
+learnable bias vector, and $\sigma$ the \textit{activation function}, 
+a fixed nonlinear function applied elementwise. The index $l = 1, \ldots, L$
+runs over the $L$ layers of the network. The weight matrix and 
+bias vector of each layer are the \textit{parameters} of the model,
+collectively denoted by $\theta$, and are the quantities adjusted during training.
+
+The activation function $\sigma$ is what gives the network its expressive
+power. Without it, the composition of linear layers would itself be a single
+linear transformation, no matter how many layers were stacked. A nonlinear
+$\sigma$ — for instance the rectified linear unit, $\sigma(x) = \max(0, x)$ —
+allows the network to represent nonlinear relationships between input and
+output~\cite{goodfellow2016}.
+
+A multilayer perceptron is the composition of several such layers. Taking the
+input vector $\mathbf{x}$ as the layer-zero representation,
+$\mathbf{h}^{(0)} = \mathbf{x}$, the network applies the layers in sequence,
+\begin{equation}
+  f(\mathbf{x}) = f^{(L)} \circ \cdots \circ f^{(1)}(\mathbf{x}),
+  \label{eq:mlp-composition}
+\end{equation}
+where each $f^{(l)}$ denotes the transformation of layer $l$ defined
+in~\eqref{eq:mlp-layer}, and the output of the final layer is the prediction of
+the network. The layers between the input and the output are the
+\textit{hidden layers}, and the number of layers $L$ is the \textit{depth} of
+the network. The map $f$ takes a fixed-size vector
+$\mathbf{x} \in \mathbb{R}^d$ and returns an output of fixed size, determined
+by the dimensions of the weight matrices (Figure~\ref{fig:mlp}).
+
+\begin{figure}
+  \centering
+  \includegraphics{mlp}
+  \caption[The multilayer perceptron.]{%
+    A multilayer perceptron mapping a fixed-size input vector
+    $\mathbf{x} \in \mathbb{R}^d$ through two hidden layers to an output. Each
+    layer applies a learnable linear transformation followed by an elementwise
+    nonlinearity. The dimension of the input is
+    fixed in advance by the architecture: every input the network processes
+    must be a vector of exactly $d$ components.
+  }
+  \label{fig:mlp}
+\end{figure}
+
+This last property is essential to what follows. The architecture fixes the
+size of the input in advance: the product $\mathbf{W}^{(1)} \mathbf{x}$
+is defined only if the input vector $\mathbf{x}$ has the required 
+dimension, and the network assumes that its components are arranged 
+in a definite order. A multilayer perceptron is a function on $\mathbb{R}^d$ 
+for a fixed $d$, and on nothing else.
+
+\section{Training by Gradient Descent}
+\label{sec:training}
+ 
+The parameters $\theta$ are not set by hand but learned from data, by adjusting
+them so that the network's predictions match ground-truth targets. This requires a
+measure of how wrong the predictions are and a procedure for reducing it.
+ 
+The measure is a \textit{loss function}. Given a dataset of $n$ examples with
+inputs $\mathbf{x}_i$ and targets $y_i$, the loss aggregates the discrepancy
+between each prediction $f(\mathbf{x}_i)$ and its target into a single scalar,
+\begin{equation}
+  \mathcal{L}(\theta) = \frac{1}{n} \sum_{i=1}^{n}
+    \ell\!\left(f(\mathbf{x}_i), y_i\right),
+  \label{eq:loss}
+\end{equation}
+where $\ell$ is a per-example loss, such as the squared error for regression
+or the cross-entropy for classification. The loss is a function of the
+parameters $\theta$, since the prediction $f(\mathbf{x}_i)$ depends on them;
+training is the search for the $\theta$ that minimizes $\mathcal{L}(\theta)$.
+ 
+That search is carried out by \textit{gradient descent}. The gradient
+$\nabla_\theta \mathcal{L}$ points in the direction of steepest increase of the
+loss; moving the parameters in the opposite direction decreases it. Each step
+updates the parameters by
+\begin{equation}
+  \theta \leftarrow \theta - \eta \, \nabla_\theta \mathcal{L}(\theta),
+  \label{eq:gradient-descent}
+\end{equation}
+where the scalar $\eta > 0$ is the \textit{learning rate}, controlling the size
+of each step. The gradient itself is computed by \textit{backpropagation}, the
+application of the chain rule across the layers of the
+network~\cite{goodfellow2016}; it yields the derivative of the loss with
+respect to every parameter, and is the algorithm that makes training deep
+networks practical.
+ 
+Computing the gradient in~\eqref{eq:gradient-descent} over the full dataset is
+costly when $n$ is large, since it requires a pass over every example for a
+single update. \textit{Stochastic gradient descent} replaces the full-dataset
+gradient with an estimate computed on a small random subset of the data, a
+\textit{minibatch} $\mathcal{B}$. The method was originally defined for a single
+example per step — the source of the name, as each step follows a noisy,
+\textit{stochastic} estimate of the gradient rather than the exact one — but is
+generally applied over a minibatch, which averages the per-example gradients,
+\begin{equation}
+  \nabla_\theta \mathcal{L}(\theta) \approx
+    \frac{1}{\lvert \mathcal{B} \rvert} \sum_{i \in \mathcal{B}}
+    \nabla_\theta \, \ell\!\left(f(\mathbf{x}_i), y_i\right).
+  \label{eq:sgd}
+\end{equation}
+Under uniform random sampling of examples, the minibatch gradient is an 
+unbiased estimate of the full gradient, and each update is far cheaper, 
+so many more updates are performed for the same computational cost. 
+Stochastic gradient descent is the basis of essentially all
+modern neural network training.
+ 
+The optimizer used throughout the implementations of this work is
+\textit{Adam}~\cite{kingma2015}, a method in the stochastic gradient descent
+family that adapts the effective step size for each parameter individually,
+using running estimates of the gradient. Its internal mechanics are not required for the
+developments that follow, and the reader is referred to the original work for
+them. What matters is that the multilayer perceptron, with its parameters, loss, and training
+procedure, now stands as a complete and trainable object. The remainder of the
+chapter asks whether that object can be applied to a graph.
+
+\section{Why the Multilayer Perceptron Fails on Graphs}
+\label{sec:mlp-fails}
+
+The multilayer perceptron assembled above is a function on a fixed-size vector.
+A graph is not a vector. To apply the perceptron to a graph, the graph must
+first be converted into a vector of fixed size, and the difficulty is that no
+such conversion preserves what the graph encodes. This section attempts the
+conversion directly and examines what goes wrong; the failures that surface are
+the substance of the chapter.
+
+Consider a node-level task: predicting a property of each node of a graph, as
+in the node classification setting of Chapter~\ref{ch:applications}. There are
+two natural ways to present such a problem to a multilayer perceptron, and it
+is instructive that both fail, for different reasons.
+
+The first approach attempts to encode the whole graph as a single input vector
+and feed it to the network. The structure of a graph on $n$ nodes is carried by
+its adjacency matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$, and its node
+attributes by the feature matrix $\mathbf{X} \in \mathbb{R}^{n \times d}$. To
+form a single input vector, these matrices are flattened — their entries read
+out in order and laid end to end — and concatenated. This at once runs into two
+obstructions.
+
+The first obstruction concerns size. The flattened adjacency matrix has $n^2$ entries and
+the flattened feature matrix has $n \times d$; the length of the resulting
+input vector therefore grows with the number of nodes and differs from one
+graph to another. But a multilayer perceptron, by~\eqref{eq:mlp-layer}, admits
+inputs of one fixed dimension only. A network built for a graph of one size
+cannot accept a graph of another. The same obstruction appears within a single
+graph. A finer attempt would process each node together with its neighbors,
+rather than flattening the whole graph at once; but nodes differ in how many
+neighbors they have, so this neighborhood-based input again has no fixed size
+(Figure~\ref{fig:variable-neighborhood}). This is the problem of \textit{variable
+size}: neither across graphs nor across the nodes of one graph is the number of
+entities fixed, whereas the multilayer perceptron demands a
+fixed-dimensional input.
+
+\begin{figure}
+  \centering
+  \includegraphics{variable-neighborhood}
+  \caption[Neighborhoods of varying size.]{%
+    Two nodes of the same graph with neighborhoods of different sizes: the
+    node on the left has three neighbors, the node on the right has six. A model
+    that processes a node together with its neighbors must accept inputs of
+    varying size, which a multilayer perceptron cannot.
+  }
+  \label{fig:variable-neighborhood}
+\end{figure}
+
+The second obstruction concerns order. As established in
+Chapter~\ref{ch:graph-theory}, the nodes of a graph carry no intrinsic
+ordering; an indexing must be chosen to write down the adjacency matrix, and
+any of the $n!$ possible indexings describes the same graph. The two adjacency
+matrices of a graph under two different node orderings are different matrices,
+and flattening them yields two different vectors. A multilayer perceptron
+would receive these as two distinct inputs and could process them differently,
+even though they represent the same graph
+(Figure~\ref{fig:relabeling}). The model would thus depend on an arbitrary
+choice that carries no information — the labeling of the nodes — and would have
+no means of recognizing that the choice is arbitrary. This is the problem of
+\textit{node ordering}: the flattened representation imposes an order that the
+graph does not have, and the multilayer perceptron has no way to disregard it.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{relabeling}
+  \caption[The same graph under two node orderings.]{%
+    A single graph drawn twice with its nodes indexed in two different orders.
+    Each ordering produces a different adjacency matrix, and flattening each
+    matrix produces a different input vector. A multilayer perceptron receives
+    the two vectors as unrelated inputs, although they encode the same graph.
+    Neither ordering is privileged: the graph is the same object in both.
+  }
+  \label{fig:relabeling}
+\end{figure*}
+
+Faced with these obstructions, one might abandon the adjacency matrix
+altogether and take the second approach: present each node to the network on
+its own, using only its feature vector $\mathbf{x}_i$, and predict the node's
+property from that. This input has a fixed size $d$, and the ordering of the
+nodes no longer enters, since each node is treated separately. Both previous
+obstructions vanish — but at a cost that defeats the purpose. With the
+adjacency matrix discarded, the structure of the graph never enters the
+computation at all. The network processes each node as an isolated example. Yet
+the tasks of Chapter~\ref{ch:applications} are relational by nature: in a
+citation network, a paper's topic is informed by the topics of the papers it
+cites, and a model that sees a node in isolation discards exactly this
+evidence. This is the problem of \textit{missing relational structure}: the
+only input that fits a multilayer perceptron is one from which the relations
+have been removed.
+
+The two approaches exhaust the natural options, and they fail in opposite
+ways. Including the adjacency matrix preserves the structure but breaks on
+variable size and node ordering; excluding it restores a fixed, order-free
+input but discards the structure entirely. There is no middle ground: the
+multilayer perceptron cannot be given a graph without either confronting a
+representation it cannot accept or being handed one from which the graph has
+been erased.
+
+These failures reveal that the multilayer perceptron carries the wrong
+assumptions for relational data. Its \textit{inductive bias} is that examples
+are independent and of fixed size, an assumption appropriate to vectors but
+false for graphs, whose entities are connected and whose representation admits
+no canonical order. What the analysis exposes is the assumptions a
+graph model must instead possess: it must accept inputs of varying size, it
+must be \textit{invariant} to the ordering of the nodes, so that relabeling
+leaves its predictions unchanged, and it must let the structure of the graph
+participate in the computation. These three requirements, arrived at here by
+watching the multilayer perceptron fail, are the foundation on which the following
+chapters build a neural network suited to graphs.
