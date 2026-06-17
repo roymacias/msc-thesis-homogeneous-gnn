@@ -1,0 +1,210 @@
+\chapter{Inductive Bias, Invariance, and Equivariance}
+\label{ch:inductive-bias}
+\minitoc
+
+The preceding analysis in Section~\ref{sec:mlp-fails} introduced two concepts
+in passing — the \textit{inductive bias} of a model and the requirement that a
+graph model be \textit{invariant} to node ordering — without developing either.
+This chapter develops both. It first makes precise what an inductive bias is
+and why successful generalization requires one, reading the inductive biases of
+successful architectures as evidence that each encodes the structure of its own
+domain. It then identifies the inductive bias appropriate to graphs and gives
+the two symmetry conditions that express it formally.
+
+\section{Inductive Bias in Neural Architectures}
+\label{sec:inductive-bias}
+
+A model trained on a finite set of examples must, to be useful, make
+predictions on examples it has never seen. The training data alone cannot
+determine those predictions: infinitely many functions are consistent with any
+finite sample. A model generalizes only because it brings assumptions of its
+own about which functions are plausible before any data is observed.
+The set of such assumptions is the \textit{inductive bias} of the
+model~\cite{goodfellow2016}. Generalization is therefore not possible without
+an inductive bias, and succeeds when that bias matches the structure of the
+problem.
+
+Deep learning architectures differ primarily in the inductive biases their
+structure encodes. Three of them recur throughout 
+this work: the multilayer perceptron (MLP), the convolutional neural network (CNN), 
+and the recurrent neural network (RNN). From this point onward, these architectures 
+are referred to exclusively by their acronyms, both in this chapter and 
+throughout the remainder of the document.
+
+The three differ precisely in the assumptions their structure imposes. The MLP,
+whose layers connect every input to every output, assumes that any
+input coordinate may interact with any other, that no particular structure 
+among the coordinates is presumed, and that examples are treated 
+independently. This is the appropriate bias when the input is an
+unstructured vector — such as tabular data — but the wrong bias for 
+data with an underlying structure.
+
+The CNN and the RNN illustrate how a well-matched bias is built into
+structure. The CNN, designed for data arranged on a regular grid such as the
+pixels of an image, applies the same local filter at every position. Two
+assumptions are encoded in this design. The first is \textit{locality}: a pixel
+is informative about its immediate neighbors, so the filter reads only a small
+spatial window rather than the whole image. The second is that a pattern is
+meaningful regardless of where in the image it appears, so the same filter is
+reused at every position; a feature shifted across the grid produces the same
+feature shifted in the output. These assumptions make the CNN well suited to 
+natural images. The RNN, designed for sequences,
+encodes a different bias: it processes elements in order, applying the same
+transition at every step. This assumes that the data has a meaningful
+sequential order and that the rule relating one element to the next remains the same
+throughout the sequence. These assumptions are appropriate for text and time series.
+
+The same principle appears in all three. Each architecture succeeds when its
+inductive bias matches the structure of the data, and the match is built into how
+the architecture is wired rather than learned from data. The MLP assumes no particular
+structure; the CNN assumes a grid with local, position-independent patterns; the
+RNN assumes an ordered sequence with a fixed step-to-step rule. The question
+this chapter must answer follows immediately: what is the structure of a graph,
+and what inductive bias matches that structure.
+
+\section{The Relational Inductive Bias}
+\label{sec:relational-bias}
+
+The defining structure of a graph is relational. An entity is not described in
+isolation but through its connections to other entities: in a citation network
+the subject of a paper is reflected in the papers it cites, and in a molecule
+the role of an atom is determined by the atoms bonded to it. The inductive bias
+appropriate to graphs is therefore the assumption that a node is characterized
+by its neighborhood --- that the information relevant to a node resides in the
+nodes adjacent to it and in the structure connecting them. This assumption is
+the \textit{relational inductive bias}~\cite[-11.5pc]{battaglia2018}.
+
+The relational inductive bias is the graph counterpart of the locality that the
+CNN encodes, and the comparison is exact in one respect and instructive in its
+difference. Both assume that an entity is informed by what lies near it rather
+than by everything at once, and both therefore read from a local region rather
+than the whole input. The difference lies in what counts as local. On a grid,
+locality is geometric: a pixel's neighbors are the pixels at fixed offsets
+around it, the same offsets everywhere, so the notion of a local window is
+defined once and applied uniformly. On a graph there are no fixed offsets and no
+uniform window. A node's neighborhood is whatever the edges make it,
+varying in size from one node to the next. The
+relational inductive bias retains the principle of locality while discarding the
+regular geometry that made it simple to express on a grid; locality on a graph
+is defined by adjacency, not by position.
+
+Adjacency, however, fixes only which nodes are neighbors, not the order in which
+they are listed. A neighborhood is a set, and a set has no first element. The
+relational inductive bias says where a node's information comes from; it does
+not, and must not, depend on the order in which that information is enumerated,
+because the graph supplies no such order. Making this requirement precise calls
+for the concepts of the next two sections.
+
+\section{Invariance and Equivariance}
+\label{sec:invariance-equivariance}
+
+The requirement that a model not depend on an arbitrary choice in its input is
+made precise by the notions of \textit{invariance} and \textit{equivariance}. 
+Both describe how a function responds to transformations of its input, 
+and they are defined for any function and any transformation 
+before being specialized to graphs.
+
+Let $f$ be a function and let $g$ denote a transformation applied to its input.
+The function $f$ is \textit{invariant} to $g$ when transforming the input leaves
+the output unchanged:
+\begin{equation}
+  f(g \cdot \mathbf{x}) = f(\mathbf{x}).
+  \label{eq:invariance}
+\end{equation}
+The transformation is applied to the input, and the output does not move. The
+function $f$ is \textit{equivariant} to $g$ when transforming the input
+transforms the output in the same way:
+\begin{equation}
+  f(g \cdot \mathbf{x}) = g \cdot f(\mathbf{x}).
+  \label{eq:equivariance}
+\end{equation}
+The transformation is applied to the input, and here
+the output moves in step with the input.
+
+The distinction is between discarding a transformation and preserving it.
+Invariance identifies transformed and untransformed inputs by mapping 
+them to the same output, so the transformation is discarded by $f$. 
+Equivariance preserves the effect of the transformation:
+it survives the application of $f$ and acts on the result, so applying $f$
+and then transforming gives the same answer as transforming and then applying
+$f$. Which of the two is required is not a matter of preference but of the task:
+when the quantity to be predicted is itself unaffected by the transformation,
+$f$ must be invariant; when the quantity to be predicted is attached to parts of
+the input that the transformation moves, $f$ must be equivariant, so that the
+prediction moves with the part it describes.
+
+\section{Permutation Invariance and Equivariance on Graphs}
+\label{sec:permutation}
+
+The transformation that matters for graphs is the reordering of nodes. As
+established in Chapter~\ref{ch:graph-theory}, the nodes of a graph carry no
+intrinsic order; an indexing must be chosen to write the adjacency matrix
+$\mathbf{A}$ and the feature matrix $\mathbf{X}$, and any of the $n!$ possible
+indexings describes the same graph. A reordering of the nodes is represented by
+a \textit{permutation matrix} $\mathbf{P} \in \{0,1\}^{n \times n}$, a square
+matrix with exactly one entry equal to $1$ in each row and each column and zeros
+elsewhere. An entry $P_{ij}=1$ indicates that the node originally at index $j$ is mapped to
+the new index $i$. Multiplying by $\mathbf{P}$ rearranges the rows of a matrix 
+according to this relabeling. A permutation matrix is orthogonal,
+\begin{equation}
+  \mathbf{P}\mathbf{P}^\top = \mathbf{I},
+  \label{eq:permutation-orthogonal}
+\end{equation}
+which states that the reordering is invertible and that its inverse is its
+transpose: the rearrangement can always be undone.
+
+Applying the reordering $\mathbf{P}$ to a graph acts on both of its matrices.
+The feature matrix becomes $\mathbf{P}\mathbf{X}$, which moves each node's
+feature vector to the row assigned by the reordering. The adjacency matrix
+becomes $\mathbf{P}\mathbf{A}\mathbf{P}^\top$, with $\mathbf{P}$ reordering its
+rows and $\mathbf{P}^\top$ its columns, so that the entry recording an edge
+between two nodes follows them to their new positions. The pair
+$(\mathbf{P}\mathbf{A}\mathbf{P}^\top,\, \mathbf{P}\mathbf{X})$ is the same graph
+as $(\mathbf{A}, \mathbf{X})$ under a different indexing; no edge has been added
+or removed, and no feature has changed, only the node ordering.
+
+A function defined on graphs must respect this fact, and which condition it must
+satisfy depends on the level of the task. For a task whose output describes the
+graph as a whole --- a single prediction for the entire graph, as in graph
+classification --- the output must not depend on the indexing at all. Such a
+function $f$ must be \textit{permutation invariant}:
+\begin{equation}
+  f(\mathbf{P}\mathbf{A}\mathbf{P}^\top,\, \mathbf{P}\mathbf{X})
+    = f(\mathbf{A}, \mathbf{X}).
+  \label{eq:permutation-invariance}
+\end{equation}
+Reordering the nodes leaves the graph-level prediction unchanged.
+For a task whose output is attached to the individual 
+nodes --- one prediction per node, as in node classification --- the output 
+must follow the nodes when they are reordered.
+In this case, $f$ must be \textit{permutation equivariant}:
+\begin{equation}
+  f(\mathbf{P}\mathbf{A}\mathbf{P}^\top,\, \mathbf{P}\mathbf{X})
+    = \mathbf{P}\, f(\mathbf{A}, \mathbf{X}).
+  \label{eq:permutation-equivariance}
+\end{equation}
+Reordering the nodes reorders the per-node outputs in exactly the same way: the
+prediction for a given node is the same prediction, carried to that node's new
+position~\cite[1pc]{hamilton2020}. Figure~\ref{fig:permutation-equivariance}
+illustrates the two conditions on a single graph drawn under two orderings.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{permutation-equivariance}
+  \caption[Permutation invariance and equivariance on a graph.]{%
+    A single graph shown under two node orderings related by a permutation
+    $\mathbf{P}$. Left: the original indexing, with a per-node output attached
+    to each node and a single graph-level output computed from the whole graph.
+    Right: the reordered indexing, with the graph-level output unchanged
+    (invariance), while the per-node outputs appear in the permuted positions
+    (equivariance).
+  }
+  \label{fig:permutation-equivariance}
+\end{figure*}
+
+These two conditions, together with the relational inductive bias of
+Section~\ref{sec:relational-bias}, determine what a layer operating on graphs
+must be. The relational inductive bias fixes where each node's information comes
+from. Permutation equivariance fixes how the layer must treat
+the indexing. This is the design the next chapter develops: the message-passing 
+framework gives these requirements a concrete and general form.
