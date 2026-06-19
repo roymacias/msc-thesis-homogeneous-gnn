@@ -1,0 +1,488 @@
+\chapter{The Message-Passing Framework}
+\label{ch:message-passing}
+\minitoc
+
+A graph model must handle inputs of varying size, remain independent of 
+node ordering, and incorporate graph structure into the computation. 
+These requirements are captured by the relational inductive bias, together with the 
+conditions of permutation invariance and equivariance. This chapter constructs 
+a layer that satisfies these properties by design, assembling it from three 
+component functions, examining the effects of stacking such layers, and 
+interpreting the resulting formulation as a general design space for GNNs.
+
+\section{From Relational Bias to Neighborhood Aggregation}
+\label{sec:neighborhood-aggregation}
+
+The relational inductive bias of Section~\ref{sec:relational-bias} asserts that
+a node is characterized by its neighborhood. This fixes where a node's representation 
+must come from: not from the node alone, but from the node together with 
+the nodes adjacent to it. A layer that respects the bias therefore computes 
+a node's representation by \textit{aggregating} the information 
+held by its neighbors. This is the operative idea. The
+question is how to perform that aggregation while meeting
+the requirements the previous chapters imposed.
+
+The CNN offers an instructive point of comparison,
+because it faces the same problem on a fixed-size domain and solves it in a way
+that does not transfer directly~\cite{bishop2024}. A convolutional layer reads
+each position together with a fixed window of surrounding positions and applies
+the same filter at every position. Two aspects of this design are worth
+isolating. The window is of fixed size and fixed shape, so the filter always
+reads the same number of inputs arranged in the same way; and the filter is
+reused everywhere, so a single set of parameters serves the whole input. A
+graph layer should follow the same instinct --- read a node together with its
+local region rather than the whole graph --- but the neighborhood structure of
+a graph differs fundamentally. A neighborhood is not a fixed window: different
+nodes have different numbers of neighbors, so the operation must accept a
+variable number of inputs. And a neighborhood has no fixed arrangement: it is a
+set, with no first or last element, so the operation must not depend on the
+order in which the neighbors are listed.
+
+These two obstacles are met by two ingredients acting together, and the
+distinction between what each contributes is worth drawing precisely, since it
+is easy to attribute to one what belongs to the other. The first ingredient is
+the aggregation itself. An operation that combines a neighborhood of arbitrary
+size into a single vector resolves the problem of variable size directly: its
+output has a fixed dimension regardless of how many neighbors entered it. If,
+in addition, that operation is insensitive to the order of its inputs, it also
+discards the arbitrary ordering, and the requirement of
+Section~\ref{sec:permutation} is satisfied at the level of the neighborhood.
+The aggregation, then, handles the variable size and supplies invariance to
+the ordering of neighbors.
+
+The second ingredient is \textit{parameter sharing}: the same functions, with
+the same parameters, are applied at every node of the graph, exactly as a
+single filter is reused at every position of an image. Its contribution is
+distinct from that of the aggregation. Because the identical computation is
+performed at every node, a relabeling of the nodes does not change the computation
+applied to them. Combined with an order-insensitive aggregation, it allows the
+desired permutation properties to be built into the layer.
+
+Parameter sharing also keeps the number of parameters independent of the number
+of nodes. The same layer can therefore be applied to graphs of arbitrary size,
+which both improves scalability and permits a model trained on one graph to be
+applied to another~\cite{bishop2024}. The two ingredients are therefore
+complementary --- the parameter sharing guarantees that the same computation
+is applied to every node, and the aggregation collapses a variable, unordered
+neighborhood into a fixed vector --- and together they turn the relational inductive
+bias into an operation that meets the requirements of the two preceding
+chapters.
+
+When a node's representation is formed by combining information from its neighborhood, 
+through repeated aggregation and shared transformations, connected nodes tend to 
+acquire increasingly similar representations. This behavior aligns the layer with
+the \textit{homophily} assumption introduced in Section~\ref{sec:structural-properties}, namely 
+that adjacent nodes are likely to be similar. For many graphs this bias is appropriate and is 
+precisely what makes the approach effective. When neighboring nodes carry information 
+that differs systematically from that of the central node, however, treating their contributions 
+uniformly may become a limitation, a question taken up in Chapter~\ref{ch:limitations}.
+
+\section{The Message-Passing Layer}
+\label{sec:message-passing-layer}
+
+The ideas developed in the previous section can now be stated formally. A layer of
+the kind described takes the representations of all nodes and produces new
+representations for each node, each formed from the node and its neighborhood.
+This section assembles such a layer from three functions --- one that forms a
+message from a neighbor, one that aggregates the messages of a neighborhood,
+and one that updates a node from its aggregated neighborhood --- and states the
+general equation they compose into. The unification of these three functions
+into a single framework, under which many previously separate graph models
+appear as instances, is due to Gilmer et al.~\cite{gilmer2017}; the exposition
+here follows the formulation used throughout this work.
+
+The object the layer transforms is the \textit{hidden representation} of a
+node. Writing $\mathbf{h}_i^{(k)} \in \mathbb{R}^{d'}$ for the representation of
+node $i$ after layer $k$, the layer maps the node representations
+$\{\mathbf{h}_i^{(k-1)}\}$ to updated representations $\{\mathbf{h}_i^{(k)}\}$.
+The representation at layer zero is initialized to the input features,
+$\mathbf{h}_i^{(0)} = \mathbf{x}_i$, so the first layer reads the raw node
+attributes and each subsequent layer reads the output of the one before.
+The representations produced by the intermediate layers are therefore hidden. 
+As with the feature matrix $\mathbf{X}$, whose row $i$ is the feature vector
+$\mathbf{x}_i$, the hidden representations of all nodes are collected into a
+matrix $\mathbf{H}^{(k)} \in \mathbb{R}^{n \times d'}$ whose row $i$ is
+$\mathbf{h}_i^{(k)}$; the matrix form is used when a layer is written as a
+single operation on the whole graph.
+
+\subsection{The Message Function}
+\label{sec:message-function}
+
+The first function specifies what a neighbor contributes. For a node $i$ and a
+neighbor $j \in \mathcal{N}(i)$, the \textit{message function} $\phi^{(k)}$
+produces a vector --- the message sent from $j$ to $i$ --- from the
+representations available at the two endpoints of the edge and, where present,
+the feature of the edge itself:
+\begin{equation}
+  \mathbf{m}_{j \to i}^{(k)}
+    = \phi^{(k)}\!\left(
+        \mathbf{h}_i^{(k-1)},\,
+        \mathbf{h}_j^{(k-1)},\,
+        \mathbf{e}_{j,i}
+      \right).
+  \label{eq:message-function}
+\end{equation}
+The function $\phi^{(k)}$ is a learnable map whose output $\mathbf{m}_{j \to
+i}^{(k)}$ is the message; its arguments are the representation of the receiving
+node $i$, the representation of the sending neighbor $j$, and the feature
+$\mathbf{e}_{j,i}$ of the edge from $j$ to $i$. Not every
+argument need be used: a message may be formed from the neighbor alone, from
+the neighbor together with the central node, or from either of these together
+with the edge feature. The general form admits all three sources --- the
+neighbor, the central node, and the edge --- and a particular architecture
+selects among them. The edge feature is retained in the general form because 
+the framework accommodates it, and because it is the point at which edge 
+information would enter when available.
+
+\subsection{The Aggregation Function}
+\label{sec:aggregation-function}
+
+The message function produces one message for each neighbor of $i$. Since a
+node may have any number of neighbors, these messages form a collection of
+variable size, and they must be combined into a single vector before the node
+can be updated. The \textit{aggregation function} $\bigoplus$ performs this
+combination over the neighborhood:
+\begin{equation}
+  \mathbf{a}_i^{(k)}
+    = \bigoplus_{j \in \mathcal{N}(i)} \mathbf{m}_{j \to i}^{(k)}.
+  \label{eq:aggregation-function}
+\end{equation}
+The aggregated vector $\mathbf{a}_i^{(k)}$ summarizes the entire neighborhood of
+$i$ in a single vector of fixed dimension, whatever the number of neighbors,
+which is what allows the layer to accept neighborhoods of varying size.
+The neighborhood $\mathcal{N}(i)$ is a set, and
+the messages carry no intrinsic order; the result of combining them must
+therefore not depend on the order in which they are taken. The aggregation
+function must be invariant to the ordering of its inputs. The operations
+commonly used --- the sum, the mean, and the maximum, taken coordinatewise ---
+all satisfy this condition, and any of them yields a well-defined aggregation.
+
+\subsection{The Update Function}
+\label{sec:update-function}
+
+The aggregated neighborhood does not by itself determine the node's new
+representation. Although information about the node itself may already enter
+through the message function, the layer still requires a mechanism that
+combines the neighborhood summary with the node's own prior representation. 
+The \textit{update function} $\gamma^{(k)}$ combines the two, producing the new
+representation from the node's previous representation and the aggregate of its
+neighborhood:
+\begin{equation}
+  \mathbf{h}_i^{(k)}
+    = \gamma^{(k)}\!\left(
+        \mathbf{h}_i^{(k-1)},\,
+        \mathbf{a}_i^{(k)}
+      \right).
+  \label{eq:update-function}
+\end{equation}
+The function $\gamma^{(k)}$ is a learnable map that takes the node's own prior
+representation $\mathbf{h}_i^{(k-1)}$ together with the aggregated message
+$\mathbf{a}_i^{(k)}$ and returns the updated representation $\mathbf{h}_i^{(k)}$.
+Retaining the node's prior state alongside the neighborhood is what prevents the
+node's own information from being discarded; the
+balance between the two is a matter of how $\gamma^{(k)}$ is chosen, and
+ranges from a simple sum of the two arguments to a learnable combination, a
+question taken up with the design space in
+Section~\ref{sec:design-space}.
+
+\subsection{The General Equation of a Message Passing Layer}
+\label{sec:general-equation}
+
+Composing the three functions gives the general form of a message-passing
+layer. Substituting the message function~\eqref{eq:message-function} into the
+aggregation~\eqref{eq:aggregation-function}, and the result into the
+update~\eqref{eq:update-function}, the representation of node $i$ at layer $k$
+is
+\begin{equation}
+  \mathbf{h}_i^{(k)}
+    = \gamma^{(k)}\!\left(
+        \mathbf{h}_i^{(k-1)},\;
+        \bigoplus_{j \in \mathcal{N}(i)}
+          \phi^{(k)}\!\left(
+            \mathbf{h}_i^{(k-1)},\,
+            \mathbf{h}_j^{(k-1)},\,
+            \mathbf{e}_{j,i}
+          \right)
+      \right).
+  \label{eq:message-passing}
+\end{equation}
+This equation defines the message-passing framework (Figure~\ref{fig:message-passing-layer}), 
+and the architectures of the following chapters are obtained by choosing the three
+functions~$\phi^{(k)}$,~$\bigoplus$, and~$\gamma^{(k)}$. 
+Where any of these functions applies 
+a learnable linear transformation, the transformation is written with a weight matrix
+$\mathbf{W}$, and an associated bias is always understood to be present even
+where it is not written: the bias is frequently absorbed into the weight
+notation or omitted for brevity, and its omission from a particular equation
+never signifies its absence. Hamilton expresses the same construction with
+operators named \textsc{aggregate} and \textsc{update}, in place of $\bigoplus$
+and $\gamma^{(k)}$; the two formulations describe the same
+computation~\cite{hamilton2020}.
+
+The layer assembled in this way meets the permutation conditions of
+Section~\ref{sec:permutation}: the message
+function~\eqref{eq:message-function} is applied identically to every edge, the
+aggregation~\eqref{eq:aggregation-function} is invariant to the order of the
+neighbors, and the update~\eqref{eq:update-function} is applied identically to
+every node. Relabeling the nodes by a permutation therefore does not change any
+node's computed representation; it only moves that representation to the node's
+new index. In the matrix notation of Section~\ref{sec:permutation}, a layer
+that sends $(\mathbf{A}, \mathbf{H}^{(k-1)})$ to $\mathbf{H}^{(k)}$
+sends the relabeled graph $(\mathbf{P}\mathbf{A}\mathbf{P}^\top,\,
+\mathbf{P}\mathbf{H}^{(k-1)})$ to $\mathbf{P}\mathbf{H}^{(k)}$,
+which is the condition of permutation equivariance
+in~\eqref{eq:permutation-equivariance}. The per-node output follows the nodes
+when they are reordered, as a node-level task requires. A task defined on the
+whole graph requires instead a single output unchanged by relabeling --- the
+permutation invariance of~\eqref{eq:permutation-invariance} --- and this is
+obtained by reducing the per-node representations to one vector with a further
+order-insensitive operation; that operation, called \textit{readout}, is the one 
+used by graph-level architectures, and is developed in Chapter~\ref{ch:architectures}.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{message-passing-layer}
+  \caption[The three functions of a message-passing layer.]{%
+    One message-passing layer applied to a central node $i$. For each neighbor
+    $j \in \mathcal{N}(i)$, the message function $\phi^{(k)}$ forms a message
+    from the representations of $j$ and $i$ and, where present, the edge
+    feature. The aggregation $\bigoplus$ combines the neighbors' messages into a
+    single vector, invariant to their order. The update function $\gamma^{(k)}$
+    combines this aggregate with the node's own previous representation to
+    produce $\mathbf{h}_i^{(k)}$.
+  }
+  \label{fig:message-passing-layer}
+\end{figure*}
+
+\section{Stacking Layers: Receptive Field and Depth}
+\label{sec:receptive-field}
+
+A single message-passing layer updates each node from its immediate neighbors.
+Applying the layer once therefore lets each node incorporate information from 
+one step away. To reach further, layers are stacked: the output representations of 
+one layer become the input representations of the next, and a network of $K$ layers
+applies the update~\eqref{eq:message-passing} $K$ times in succession, with
+$k = 1, \ldots, K$. Each layer carries its own functions
+$\phi^{(k)}, \gamma^{(k)}$ and its own parameters; the parameters are shared
+across the nodes within a layer, as Section~\ref{sec:neighborhood-aggregation}
+established, but not across layers, so the transformation applied at depth $k$
+differs from the one applied at depth $k-1$.
+
+Stacking has a definite effect on how far information can propagate into a 
+node's representation, and the effect compounds with depth. After one layer,
+$\mathbf{h}_i^{(1)}$ depends on the nodes in $\mathcal{N}(i)$, the neighbors at
+distance one. After two layers, $\mathbf{h}_i^{(2)}$ is computed from the
+first-layer representations of those neighbors, and each of those already
+depends on its own neighbors; the representation of $i$ thus comes to depend on
+the nodes within distance two. In general, after $k$ layers the representation
+$\mathbf{h}_i^{(k)}$ depends on every node within geodesic distance $k$ of $i$
+--- the set of nodes $j$ with $d(i, j) \le k$, the distance being the one
+defined in Chapter~\ref{ch:graph-theory}. This is the \textit{receptive
+field} of node $i$ at depth $k$: the region of the graph that can influence the
+node's representation. Each additional layer expands the receptive field by one
+\textit{hop}, so the depth of the network sets the radius of the neighborhood that each
+node ultimately incorporates (Figure~\ref{fig:receptive-field}).
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{receptive-field}
+  \caption[The receptive field of a node grows with depth.]{%
+    Left: a target node in the input graph. Right: the computation that
+    produces its representation, unrolled over message-passing layers. The
+    first layer aggregates messages from the node's immediate neighbors; the
+    second aggregates messages from the neighbors of those neighbors, and so
+    on. After $k$ layers the representation of the target node depends on every
+    node within $k$ hops of it, the receptive field at depth~$k$.
+  }
+  \label{fig:receptive-field}
+\end{figure*}
+
+The depth of the network thus controls the extent of the graph that each node's
+representation can incorporate, and this is the quantity a designer sets in
+choosing the number of layers. The final representations $\mathbf{h}_i^{(K)}$,
+produced after the last of the $K$ layers, are the \textit{embeddings} of the
+nodes: the learned vectors that summarize each node together with its
+$K$-hop context, and that serve as the input to whatever prediction the task
+requires --- a classifier applied per node, a score computed on pairs of nodes,
+or a reduction over all nodes to a single vector for the graph.
+
+\section{Transductive and Inductive Learning}
+\label{sec:transductive-inductive}
+ 
+The way a message-passing network is trained and evaluated depends on what
+portion of the graph data is available during training. In practice, the two
+task levels introduced in Chapter~\ref{ch:applications} commonly give rise to
+two distinct learning settings. The distinction concerns what the network has 
+access to during training and what is held back for evaluation, and it follows directly 
+from the fact that a node's representation is computed from its neighborhood.
+ 
+Consider first a task defined at the node level, in which each node carries a
+label and the goal is to predict the labels of some nodes from those of others.
+As in any supervised problem, the nodes are partitioned into a training set,
+whose labels are used to fit the model, and an evaluation set, whose labels are
+withheld and used to measure generalization. The graph structure, however,
+prevents these two sets from being separated cleanly. When the network computes
+the representation of a training node, it aggregates the representations of that
+node's neighbors, and some of those neighbors belong to the evaluation set.
+Their features and their position in the graph therefore enter the computation
+performed during training, even though their labels do not. This is 
+the \textit{transductive} setting. In node-classification problems it
+is often described as a form of \textit{semi-supervised learning}, since the
+labels of only a subset of the nodes are available during training.
+ 
+A task defined at the graph level admits a cleaner separation. Here the dataset
+is a collection of whole graphs, each carrying a single label, and the
+partition into training and evaluation sets is a partition of the graphs. A
+graph held out for evaluation is absent from training in its entirety --- its
+nodes, its edges, and its label are all unseen --- because the unit of the
+partition is the whole graph rather than a node within a shared structure. This
+is the \textit{inductive} setting, and it is the one that arises in the usual
+sense of training on some examples and generalizing to others never seen before.
+ 
+What enables the inductive setting is the parameter sharing of
+Section~\ref{sec:neighborhood-aggregation}. Because the functions
+$\phi^{(k)}$ and $\gamma^{(k)}$ are shared across nodes and carry no dependence
+on the identity or the number of nodes in any particular graph, a network fitted
+on one set of graphs is immediately applicable to another: the same functions
+compute representations on a graph the network has never encountered. 
+The same property that decouples the parameter count from graph size 
+is thus what allows a message-passing network to generalize across graphs.
+ 
+\section{Expressive Power and the 1-WL Bound}
+\label{sec:expressive-power}
+ 
+The framework constructed so far guarantees that a message-passing layer
+respects the permutation conditions of a graph, but it says nothing about how much 
+the resulting representations can distinguish. A natural way to measure the
+capability of a graph model is to ask which graphs it can tell apart: given two
+graphs that are not isomorphic, does the network assign them different
+representations, or does it map structurally different graphs to the same
+output? This is the question of \textit{expressive power}, and it is the
+property that governs how well a model can serve graph-level tasks, where
+distinguishing one graph from another is the whole of what is required. Graph
+isomorphism, defined in Chapter~\ref{ch:graph-theory}, is the precise notion of
+two graphs being the same up to a relabeling; expressive power asks how close a
+network comes to distinguishing every pair of graphs that are genuinely
+different.
+ 
+There is a classical procedure for distinguishing non-isomorphic graphs that
+was introduced before GNNs and turns out to mirror message passing closely.
+The one-dimensional Weisfeiler--Leman test, abbreviated \mbox{1-WL}, assigns a
+color to every node and refines these colors iteratively. Initially all nodes
+share a common color. At each round, a node's new color is determined by its
+current color together with the collection of colors of its neighbors; nodes
+that have the same color and whose neighbors have matching collections of colors
+keep a common color, while any difference in the surrounding colors splits them
+apart. The refinement continues until the partition of nodes into colors no
+longer changes. Two graphs for which the refinement process produces 
+different colorings are certainly not isomorphic.
+ 
+The correspondence with message passing is structural and immediate. A round of
+\mbox{1-WL} updates a node's color from its own color and the colors of its
+neighbors; a message-passing layer updates a node's representation from
+its own representation and the aggregated representations of its neighbors. The
+color plays the role of the hidden representation, and the refinement step plays
+the role of one layer. This parallel was established by
+Morris et al.~\cite{morris2019}, and it has a consequence that bounds the
+framework from above: a message-passing network can distinguish two graphs only
+if \mbox{1-WL} assigns them different colorings. No network built from the
+general equation~\eqref{eq:message-passing} can separate a pair of graphs that
+\mbox{1-WL} fails to separate. The expressive power of message passing is thus bounded 
+above by \mbox{1-WL}.
+ 
+This bound is a ceiling: a particular architecture may fall short
+of it, depending on how its aggregation and update functions are chosen.
+Reaching the ceiling --- matching the full discriminative power of \mbox{1-WL}
+rather than settling below it --- requires the aggregation to preserve enough
+information about the neighborhood that distinct neighborhoods always yield
+distinct aggregated vectors. This requirement strongly 
+favors aggregation functions that preserve as much
+neighborhood information as possible, and motivates the architecture developed
+for graph-level tasks in Chapter~\ref{ch:architectures}. The question of what the
+\mbox{1-WL} ceiling excludes --- the structurally different graphs that no
+message-passing network can tell apart --- is a limitation of the framework and
+is taken up in Chapter~\ref{ch:limitations}.
+ 
+\section{The Design Space}
+\label{sec:design-space}
+ 
+The general equation~\eqref{eq:message-passing} is not a single model but a
+template. It fixes the form of a layer --- a message formed per neighbor, an
+aggregation over the neighborhood, an update of the node --- and requires only
+that the three functions respect the permutation conditions; it does not fix
+what those functions are. Every choice of $\phi^{(k)}$, $\bigoplus$, and
+$\gamma^{(k)}$ that meets the conditions produces a valid layer, and the space
+of such choices is the design space of the framework. The architectures studied
+in this work are points in this space, and reading the equation as a space of
+possibilities rather than a fixed formula is what makes their differences
+understandable.
+ 
+\subsection{Flexibility of the Framework}
+\label{sec:framework-flexibility}
+ 
+The flexibility of the equation can be seen function by function. The message
+function $\phi^{(k)}$ may be as simple as a linear transformation of the
+neighbor's representation, or as involved as an MLP applied to
+the neighbor, the central node, and the edge feature together; it may apply one
+weight matrix to the central node and a different one to its neighbors, allowing
+a node to treat its own information differently from that of its neighborhood.
+The aggregation $\bigoplus$ may be any order-insensitive operation, with the sum,
+mean, and maximum being the common choices, each preserving a different
+aspect of the neighborhood. The update $\gamma^{(k)}$ may be a linear map
+followed by a nonlinearity, an MLP, or a rule that
+concatenates the node's prior representation with the aggregated neighborhood,
+$\mathbf{h}_i^{(k-1)} \oplus \mathbf{a}_i^{(k)}$, before transforming the
+result, so that the two are kept distinct rather than summed. Each such decision
+is a coordinate in the design space, and a complete architecture is a setting of
+all of them.
+ 
+The flexibility extends beyond the choice of functions to the very object whose
+representation is learned. The equation forms a node's representation from
+messages along its edges, but nothing in its structure requires the
+unit of representation to be a node. A layer that built its messages from edge
+features and aggregated over adjacent edges would, by the same mechanism, learn
+representations of the edges themselves; the message, aggregation, and update
+functions retain their roles, and only the object they act on changes. 
+Edge-centered architectures found in the literature are instances of the
+same framework, reoriented from nodes to edges. This generality indicates that
+message passing is not tied to node representations specifically, but is a
+template for computing on graph elements through local aggregation.
+ 
+\subsection{The MLP as a Degenerate Case}
+\label{sec:mlp-degenerate}
+ 
+One point in the design space recovers a familiar model and locates the
+framework relative to it. Suppose the message function is discarded and the
+update depends on the node alone, so that the layer computes
+$\mathbf{h}_i^{(k)} = \gamma^{(k)}(\mathbf{h}_i^{(k-1)})$ with no contribution
+from the neighborhood. The graph structure plays no part; each node is
+transformed in isolation, and the layer reduces to an MLP applied independently
+to every node. The MLP is therefore the degenerate point of the design space at
+which the neighborhood is ignored --- precisely the model that
+Chapter~\ref{ch:nn-limitations} found unable to use graph structure.
+ 
+Read in the other direction, this shows that a message-passing network is a
+generalization of the MLP, with the MLP appearing as a particular instance of the framework. 
+The structure that Chapter~\ref{ch:nn-limitations} identified as missing 
+is supplied by exactly the terms that the degenerate case removes, which places 
+the message-passing framework and the MLP at two ends of a single construction.
+ 
+\subsection{Established Architectures as Instances}
+\label{sec:established-architectures}
+ 
+The design space is not merely a catalog of possibilities; it is populated by
+architectures that have been proposed, studied, and applied, each fixing the
+three functions in a particular way to serve a particular purpose. The
+recognition that these architectures, developed separately, are instances of one
+framework is itself the contribution of the message-passing
+formulation~\cite{gilmer2017}: models that appear distinct on the surface differ
+only in their choice of message, aggregation, and update.
+ 
+This work examines three such instances, one representative of 
+each task level introduced in Chapter~\ref{ch:applications}: a node-level architecture built on 
+the assumption that adjacent nodes are similar and whose aggregation smooths 
+each node toward its neighborhood; an edge-level architecture that uses node embeddings 
+to score the plausibility of a link between two nodes; and a graph-level architecture whose 
+aggregation is chosen to reach the \mbox{1-WL} ceiling of Section~\ref{sec:expressive-power}, 
+maximizing the network's power to distinguish whole graphs. Each is the subject of the
+ following chapter, where the general framework of this chapter is given a concrete form.
