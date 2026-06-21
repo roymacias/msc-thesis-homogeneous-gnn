@@ -167,18 +167,18 @@ form a single input vector, these matrices are flattened — their entries read
 out in order and laid end to end — and concatenated. This at once runs into two
 obstructions.
 
-The first obstruction concerns size. The flattened adjacency matrix has $n^2$ entries and
-the flattened feature matrix has $n \times d$; the length of the resulting
-input vector therefore grows with the number of nodes and differs from one
-graph to another. But a multilayer perceptron, by~\eqref{eq:mlp-layer}, admits
-inputs of one fixed dimension only. A network built for a graph of one size
-cannot accept a graph of another. The same obstruction appears within a single
-graph. A finer attempt would process each node together with its neighbors,
-rather than flattening the whole graph at once; but nodes differ in how many
-neighbors they have, so this neighborhood-based input again has no fixed size
+The first obstruction concerns size. The flattened adjacency matrix has $n^2$
+entries and the flattened feature matrix has $n \times d$; the length of the
+resulting input vector therefore grows with the number of nodes and differs
+from one graph to another. But a multilayer perceptron, by~\eqref{eq:mlp-layer},
+admits inputs of one fixed dimension only. A network built for a graph of one
+size cannot accept a graph of another. The same obstruction arises even if one
+does not flatten the whole graph at once, but instead processes each node
+together with its neighbors: nodes differ in how many neighbors they have, so a
+neighborhood-based input has no fixed size either
 (Figure~\ref{fig:variable-neighborhood}). This is the problem of \textit{variable
-size}: neither across graphs nor across the nodes of one graph is the number of
-entities fixed, whereas the multilayer perceptron demands a
+size}: neither across graphs nor across the nodes of a single graph is the
+number of entities fixed, whereas the multilayer perceptron demands a
 fixed-dimensional input.
 
 \begin{figure}
@@ -224,8 +224,8 @@ Faced with these obstructions, one might abandon the adjacency matrix
 altogether and take the second approach: present each node to the network on
 its own, using only its feature vector $\mathbf{x}_i$, and predict the node's
 property from that. This input has a fixed size $d$, and the ordering of the
-nodes no longer enters, since each node is treated separately. Both previous
-obstructions vanish — but at a cost that defeats the purpose. With the
+nodes no longer enters, since each node is treated separately. Both size and
+ordering cease to be obstructions — but at a cost that defeats the purpose. With the
 adjacency matrix discarded, the structure of the graph never enters the
 computation at all. The network processes each node as an isolated example. Yet
 the tasks of Chapter~\ref{ch:applications} are relational by nature: in a
@@ -235,12 +235,12 @@ evidence. This is the problem of \textit{missing relational structure}: the
 only input that fits a multilayer perceptron is one from which the relations
 have been removed.
 
-The two approaches exhaust the natural options, and they fail in opposite
-ways. Including the adjacency matrix preserves the structure but breaks on
-variable size and node ordering; excluding it restores a fixed, order-free
-input but discards the structure entirely. There is no middle ground: the
-multilayer perceptron cannot be given a graph without either confronting a
-representation it cannot accept or being handed one from which the graph has
+The two most natural encodings thus fail in opposite ways. Including the
+adjacency matrix preserves the structure but breaks on variable size and node
+ordering; excluding it restores a fixed, order-free input but discards the
+structure entirely. The failure is not a matter of choosing a better encoding
+between these two: one direction confronts the multilayer perceptron with a
+representation it cannot accept, the other hands it one from which the graph has
 been erased.
 
 These failures reveal that the multilayer perceptron carries the wrong
