@@ -1,0 +1,165 @@
+\chapter{Conclusions and Future Directions}
+\label{ch:conclusions}
+\minitoc
+
+This closing chapter looks back over what
+was established and forward to what it opens. The first part gathers the
+contributions of the work and weighs them against the objectives set out in
+the introduction. The second part maps the directions that the framework,
+once understood together with its limits, makes available for further study.
+
+\section{Synthesis of Contributions}
+\label{sec:contributions}
+
+The general objective stated in Section~\ref{sec:objectives-scope} was to
+provide a self-contained reference on GNNs for homogeneous graphs under the
+message-passing framework: a single document that develops the theory, presents
+representative architectures, and evaluates them through reproducible
+implementations. The work meets this objective, and its specific aims were
+addressed in turn across the document.
+
+The foundations that motivate GNNs were established first. Graph-structured
+data was characterized as the natural description of relational domains, and
+the properties that set it apart from tabular, grid, and sequential data ---
+variable size, absence of a canonical ordering, irregular local structure ---
+were shown to be precisely the properties that a standard neural network cannot
+accommodate. The MLP was examined as the concrete case: its
+reliance on a fixed input dimension and a fixed coordinate ordering makes it
+unable to operate on graphs without discarding the very structure that carries
+the signal. From this failure the requirements on any graph model were derived,
+with permutation invariance and equivariance foremost among them.
+
+On these foundations the message-passing framework was developed as the
+unifying formulation. A node's representation was defined through the repeated
+aggregation of information from its neighborhood, decomposed into the message,
+aggregation, and update functions, and shown to satisfy the invariance and
+equivariance requirements by construction. The framework was then examined through
+its principal implications: the receptive field that successive layers induce, the distinction
+between the transductive and inductive settings, the expressive power of the
+resulting models and its ceiling, and the design space that the three functions
+leave open. The MLP reappeared within this space as the
+degenerate case in which the neighborhood is ignored, locating it as a
+particular case of the same framework rather than a separate object.
+
+The three representative architectures were then derived as instances of the
+framework, one for each level of graph learning. GCN was presented for node
+classification, GAE for link prediction through the encoder--decoder view, and
+GIN for graph classification, with injective aggregation motivated as the choice that reaches
+the expressive ceiling the framework permits. Each architecture was obtained by specializing
+the message, aggregation, and update functions, placing the three as points in
+the single design space.
+
+The architectures were implemented on standard benchmarks --- Cora for GCN,
+Amazon Computers for GAE, and NCI1 for GIN --- in PyTorch Geometric, with
+reproducible code in a companion repository. Each was evaluated against a
+MLP baseline that assumes no graph structure and predicts from node
+features alone. Across all three tasks the architecture that uses the graph
+improves on the baseline that does not, confirming in practice the predictive
+benefit that the theory anticipates: the relational structure carries
+information, and a model built to respect it extracts signal that a
+feature-only model cannot.
+
+Finally, the limitations of the framework were examined in their own right.
+Oversmoothing, oversquashing, heterophily, and the ceiling on expressive power
+were each traced to the framework's defining operation rather than to any
+particular architecture, establishing that they are properties of message
+passing itself.
+
+The contribution of the work is the reference document itself. Its value lies
+not in any single result but in the assembly: a path from the motivation for
+learning on graphs through to the limits of the message-passing framework, with the
+theory, the architectures, and their evaluation developed in one consistent
+notation and one continuous line of argument, intended to serve as a foundational
+resource for the study of the field.
+
+\section{Directions for Future Research}
+\label{sec:future-work}
+
+The scope of this work was deliberately restricted to homogeneous, undirected,
+simple graphs and to three architectures within the message-passing framework.
+Its boundaries mark where the field continues, with future research extending
+across the limitations of the framework, unexplored regions of its design space, 
+new domains and tasks, and architectures that move beyond message passing.
+
+\subsection{Addressing the Limitations of the Framework}
+\label{sec:future-limitations}
+
+Chapter~\ref{ch:limitations} established the limitations of message passing as
+consequences of its mechanism. Each has become a direction of research
+motivated by these limitations.
+
+The ceiling on useful depth imposed by oversmoothing is addressed by
+architectures that give a node access to its earlier, less smoothed
+representations rather than only the most recent one, so that depth can grow
+without the representations collapsing toward a common
+vector~\cite[-5pc]{xu2018}. Oversquashing, the distortion of information from distant 
+parts of the graph due to compression into fixed-size representations, is addressed 
+by mitigating the associated bottleneck; a common direction explores replacing local propagation 
+with global attention mechanisms, a direction discussed separately below. 
+Heterophily is met by aggregation schemes that no longer assume neighbors are similar:
+separating a node's own representation from its neighbors' and combining
+information across several rounds of neighborhood; designs identified as
+effective precisely where the homophily assumption fails~\cite[-7pc]{zhu2020}. 
+The expressivity ceiling set by the \mbox{1-WL} test is raised by computations that refine
+over tuples of nodes rather than single nodes, forming a higher-order hierarchy
+that goes beyond this bound~\cite[-3pc]{morris2019}.
+
+\subsection{Unexplored Regions of the Design Space}
+\label{sec:future-design-space}
+
+This work examined a limited part of the design space the framework defines.
+Other parts of that space contain established architectures it did not develop.
+
+The aggregation step was confined to sum, mean, and max. Replacing it with a
+learned, attention-based weighting of neighbors, so that a node determines how much each
+neighbor contributes, yields \textit{Graph Attention Networks (GAT)}~\cite[-5pc]{velickovic2018}.
+Separating the central node's own representation and learning to aggregate from a
+sampled subset of the neighborhood yields \textit{GraphSAGE}, an inductive architecture
+built for large graphs and unseen nodes~\cite[-2pc]{hamilton2017}. Both remain within 
+message passing while exploring regions of its design space, such as learned aggregation 
+and neighborhood sampling.
+
+A further region opens once the graph is no longer static. Where the structure
+or the node features evolve in time, the framework can be extended to couple message
+passing over the graph with a model of temporal change, as in spatio-temporal architectures 
+for forecasting on graphs whose signals evolve over time~\cite{yu2018}.
+
+\subsection{Beyond Homogeneous Graphs and Standard Tasks}
+\label{sec:future-domains}
+
+Heterogeneous graphs carry several types of nodes and edges. 
+Modeling them requires machinery the homogeneous setting does not: 
+transformations specific to each relation type, so that a connection between 
+two kinds of entity is treated differently from a connection between 
+two others~\cite{schlichtkrull2018}. The homogeneous case developed in this work 
+is the prerequisite for these models, which extend message passing to a typed structure.
+
+A different extension changes the unit of prediction. The three tasks of this
+work attach predictions to nodes, edges, or whole graphs; a subgraph --- a
+portion of a graph with its own internal structure and position within
+the larger graph --- is none of these, and learning representations for
+subgraphs as primary objects supports tasks 
+not captured by the standard levels~\cite{alsentzer2020}. 
+Further still, the models considered here are discriminative, predicting properties 
+of a given graph; another direction is graph generation, where a model learns a 
+distribution over graph structures and samples new instances from it. This 
+generative setting has applications in domains such as molecular design~\cite[1pc]{you2018}.
+
+\subsection{Graph Transformers}
+\label{sec:future-transformers}
+
+The directions above remain within message passing or extend it. 
+A final direction steps outside it. The transformer replaces local neighborhood-based 
+propagation in message passing with global attention: every node attends directly 
+to every other in a single operation, regardless of distance on the graph~\cite{ying2021}. 
+Graph structure, no longer acting as the channel through which information flows, 
+is instead incorporated as a positional or structural encoding added to this 
+global attention mechanism. This mitigates the bottleneck associated with 
+oversquashing --- a distant node is now reachable in a single attention step rather than 
+many hops --- at the cost of the locality that gives message passing its scalability and inductive bias.
+
+These directions extend the message-passing framework by relaxing assumptions such as locality,
+ expressivity limits, or graph homogeneity, or by transferring the same foundations to 
+new domains, tasks, and generative settings. The framework developed in this work is therefore 
+not an endpoint but a starting point, providing the basis from which these extensions and 
+applications can be understood and evaluated.
