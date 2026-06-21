@@ -164,8 +164,8 @@ pair of nodes is called \textit{simple}. A \textit{bipartite} graph, in
 contrast, is not a departure from simplicity but a structural subclass of
 it: its nodes partition into two disjoint subsets, and every edge connects a node
 of one subset with a node of the other, as in a network of users and products
-joined by purchases. Because of this specificity, such graphs are explicitly 
-named bipartite; a graph described only as simple implies no such partition.
+joined by purchases. A graph with this structure is always identified as bipartite,
+so that a graph described only as simple implies no such partition.
 Figure~\ref{fig:nonsimple-bipartite} illustrates the three cases.
 As established in Chapter~\ref{ch:introduction}, the graphs treated
 in this work are simple.
@@ -347,7 +347,7 @@ theory~\cite{chung1997}, the \textit{graph Laplacian}
 Each diagonal entry of $\mathbf{L}$ is the degree of the corresponding node,
 and each off-diagonal entry is $-1$ where an edge is present and $0$
 otherwise. For the six-node graph of Figure~\ref{fig:adjacency-matrix},
-under the node indexing of its centre panel and with
+under the node indexing of its center panel and with
 $\mathbf{D} = \operatorname{diag}(2, 3, 2, 3, 3, 1)$, the Laplacian is
 \[
   \mathbf{L} =
@@ -363,7 +363,7 @@ $\mathbf{D} = \operatorname{diag}(2, 3, 2, 3, 3, 1)$, the Laplacian is
 
 The Laplacian admits a direct interpretation in terms of how values spread
 over a graph. Assigning a real number to each node defines a vector
-$\mathbf{f} \in \mathbb{R}^n$ called a \textit{graph signal}, 
+$\mathbf{f} \in \mathbb{R}^n$ called a \textit{graph signal},
 with component $f_i$ the value at node $i$. The Laplacian measures how much
 such an assignment varies across edges through the quadratic form
 \begin{equation}
