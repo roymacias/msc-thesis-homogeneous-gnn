@@ -85,20 +85,20 @@ new domains and tasks, and architectures that move beyond message passing.
 \label{sec:future-limitations}
 
 Chapter~\ref{ch:limitations} established the limitations of message passing as
-consequences of its mechanism. Each has become a direction of research
-motivated by these limitations.
+consequences of its mechanism. Each has since motivated a direction of research
+aimed at overcoming it.
 
 The ceiling on useful depth imposed by oversmoothing is addressed by
 architectures that give a node access to its earlier, less smoothed
 representations rather than only the most recent one, so that depth can grow
 without the representations collapsing toward a common
 vector~\cite[-5pc]{xu2018}. Oversquashing, the distortion of information from distant 
-parts of the graph due to compression into fixed-size representations, is addressed 
-by mitigating the associated bottleneck; a common direction explores replacing local propagation 
+parts of the graph as it is squeezed through intermediate nodes, is addressed 
+by mitigating the associated bottleneck; one direction replaces local propagation 
 with global attention mechanisms, a direction discussed separately below. 
 Heterophily is met by aggregation schemes that no longer assume neighbors are similar:
 separating a node's own representation from its neighbors' and combining
-information across several rounds of neighborhood; designs identified as
+information across several rounds of neighborhood are designs identified as
 effective precisely where the homophily assumption fails~\cite[-7pc]{zhu2020}. 
 The expressivity ceiling set by the \mbox{1-WL} test is raised by computations that refine
 over tuples of nodes rather than single nodes, forming a higher-order hierarchy

@@ -23,7 +23,7 @@ others. These are not tables, images, or sequences; they are networks of
 entities and the relations between them (Figure~\ref{fig:graph-structured-data}).
 Data of this kind is naturally described by a \textit{graph}: a set of entities,
 called \textit{nodes}, together with a set of connections between them, called
-\textit{edges}. Both nodes and edges can carry their own data, for example in a molecule,
+\textit{edges}. Both nodes and edges can carry their own data. For example, in a molecule,
 each node is an atom labeled with its element (carbon, hydrogen, oxygen, and so
 on) and each edge is a bond of a particular type (single, double, and so on); in
 a social network, the nodes are people and the edges are the relationships among
@@ -55,8 +55,8 @@ connections, can lead to more accurate predictions. Data
 organized in this way is called \textit{graph-structured data}.
 
 Most deep learning models are tailored to the regular structures
-described above, particularly sequences and images laid out on a grid. Graphs
-are harder to work with. They have no fixed size, since different graphs contain
+described above. Graphs are harder to work with. 
+They have no fixed size, since different graphs contain
 different numbers of nodes. They have no fixed layout: a pixel in a grid has a
 clear sense of place, with neighbors above, below, and to either side, whereas a
 node in a graph has no such spatial arrangement and may be connected to any
@@ -64,8 +64,8 @@ number of others. And they have no natural ordering, with no first or last node
 and no canonical point from which to read the rest.
 
 The goal, then, is a model that takes a graph as input and produces
-predictions about it, such as a label for each node, wheter connections exist between
-pairs of nodes, or a single label for the graph as a whole. This raises
+predictions about it, such as a label for each node, a connection between
+two nodes, or a single label for the graph as a whole. This raises
 the central question: how can a predictive model -- concretely, a neural
 network -- be designed to operate directly on a graph, respecting its variable
 size and its lack of order instead of discarding them? Neural networks built for
@@ -78,7 +78,8 @@ The general objective of this work is to provide a self-contained
 reference on GNNs for homogeneous graphs under the \textit{message-passing}
 framework: a single document that develops the theory that motivates and defines
 these models, presents representative architectures, 
-and evaluates them through reproducible implementations.
+evaluates them through reproducible implementations, 
+and serves as a foundational resource for studying the field.
 
 Specifically, the work aims to:
 
@@ -93,32 +94,28 @@ Specifically, the work aims to:
         classification, the Graph Auto-Encoder (GAE) for link prediction, and
         the Graph Isomorphism Network (GIN) for graph classification;
   \item implement the three architectures on standard benchmark datasets
-        (Cora, Amazon Computers, and NCI1) using PyTorch Geometric, with reproducible 
-        implementations, and evaluate each against a multilayer perceptron baseline 
+        (Cora, Amazon Computers, and NCI1) using PyTorch Geometric, ensuring 
+         reproducibility, and evaluate each against a multilayer perceptron baseline 
         that ignores the graph, examining the predictive benefit of explicitly
-        modeling  the relational structure of the data;
+        modeling the relational structure of the data;
   \item examine the principal limitations of GNNs under this framework,
-        including \textit{oversmoothing}, \textit{oversquashing},
-        \textit{heterophily}, and the ceiling on their expressive power.
+        including oversmoothing, oversquashing,
+        heterophily, and the ceiling on their expressive power.
 \end{itemize}
 
-Its contribution is the reference document itself: a single, reproducible source 
-that develops the message-passing framework from first principles, presents 
-representative GNN architectures, and serves as a foundational resource for studying the field.
-
 The graphs we consider are treated mainly as
-\textit{undirected}, meaning their connections carry no direction, and
-\textit{simple}, meaning that at most one connection joins any pair of nodes and
+undirected, meaning their connections carry no direction, and
+simple, meaning that at most one connection joins any pair of nodes and
 that no node is connected to itself. This choice reflects simplicity rather than a limitation 
-of the framework: message passing has enough design space to accommodate \textit{directed} graphs,
-\textit{self-loops} (a node connected to itself), and even
-\textit{multigraphs} (more than one connection between the same pair of nodes).
+of the framework: message passing has enough design space to accommodate directed graphs,
+self-loops (a node connected to itself), and even
+multigraphs (more than one connection between the same pair of nodes).
 
-The graphs considered in this work are also \textit{homogeneous}: they contain a single kind of node
+The graphs considered in this work are also homogeneous: they contain a single kind of node
 and a single kind of connection. This restriction is deliberate. The
 homogeneous setting is where the message-passing framework is most directly
 understood, and it is the foundation on which more elaborate models are built,
-including \textit{heterogeneous} graphs, which carry several kinds of nodes and
+including heterogeneous graphs, which carry several kinds of nodes and
 connections and require machinery beyond the scope of this work. Establishing
 the homogeneous case is a prerequisite for these extensions, which we
 leave as future research. The formal definitions of these graph types are given
@@ -149,7 +146,8 @@ Chapter~\ref{ch:architectures} presents the three representative architectures
 within this framework: GCN for node classification, GAE for link prediction,
 and GIN for graph classification. Chapter~\ref{ch:implementations} turns to
 practice, providing reproducible implementations of these architectures on the
-Cora, Amazon Computers, and NCI1 benchmarks in PyTorch Geometric, with the
+Cora, Amazon Computers, and NCI1 benchmarks in PyTorch Geometric, comparing each
+against a baseline that ignores the graph, with the
 accompanying code available in a companion repository.
 
 Chapter~\ref{ch:limitations} examines the limitations of GNNs under the

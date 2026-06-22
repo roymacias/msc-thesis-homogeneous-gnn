@@ -26,8 +26,8 @@ implementations developed in the rest of this work.
 \end{figure}
 
 These three levels correspond to the standard categories of graph learning tasks, 
-but they do not exhaust the field. Other settings include \textit{community/subgraph-level tasks}, 
-which focus on groups of related nodes, and \textit{graph generative tasks}, 
+but they do not exhaust the field. Other settings include \textit{subgraph-level tasks}, 
+which focus on groups of related nodes, and \textit{graph generation tasks}, 
 which aim to generate new graphs, such as candidate molecular structures with 
 desirable properties. Although these settings rely on the same representational 
 principles introduced here, they lie outside the scope of this work, 
@@ -82,19 +82,16 @@ surrounding network of connections than in any single account considered in isol
 \section{Edge-Level Tasks}
 \label{sec:edge-level}
 
-An \textit{edge-level task} focuses on the relationships between entities rather than the
-entities themselves. The central example is \textit{link prediction}: given the
-edges already present in a graph, predict which further edges are likely to
-exist. Recommendation is one of the
-the most familiar application (Figure~\ref{fig:edge-level}). In its simplest form, a network records
-products that are frequently bought together, with the nodes being products and
-edges indicating co-purchases.
-Predicting missing edges in this network amounts to identifying product pairs that are 
-likely to be associated, even if they have not yet been observed together. A
-richer version introduces two kinds of entity, users and products, with an edge
-representing interactions such as purchases or ratings; here, link prediction becomes
-the recommendation problem itself, anticipating which products a user will want
-next.
+An \textit{edge-level task} focuses on relationships between entities. 
+The central example is \textit{link prediction}: given the edges already present 
+in a graph, predict which additional edges are likely to exist. Recommendation is one 
+of its most familiar applications (Figure~\ref{fig:edge-level}). 
+In a product network, where nodes represent products and edges indicate co-purchases,
+ predicting missing edges identifies items likely to be associated even if 
+they have not yet been observed together. A richer formulation introduces 
+users and products as distinct node types, with edges representing interactions 
+such as purchases or ratings; link prediction then becomes the recommendation 
+problem itself, anticipating which products a user is likely to prefer next.
 
 \begin{figure*}[t]
   \centering
@@ -116,12 +113,12 @@ products only by their individual attributes, ignoring the network of interactio
 around them, discards precisely the signal that reveals which items behave
 similarly; methods that propagate information along the graph structure consistently
 outperform such approaches, a principle that underlies graph-based recommender systems
-deployed at web scale~\cite[-8.5pc]{ying2018}.
+deployed at web scale~\cite[-6pc]{ying2018}.
 
 Link prediction extends well beyond commerce. Given a pair of drugs, one may
 predict whether taking them together produces an adverse interaction, by placing
 both within a larger biological network and asking whether a particular kind of
-connection should join them~\cite[-4.5pc]{zitnik2018}. The same formulation is also used to
+connection should join them~\cite[-2pc]{zitnik2018}. The same formulation is also used to
 complete \textit{knowledge graphs}, large networks of facts in which entities are connected
 by relations: many true relations are simply unobserved, and link
 prediction proposes the most plausible ones.
@@ -139,8 +136,8 @@ prediction. Molecular property prediction is the canonical example. A molecule
 is naturally a graph, with atoms as nodes and chemical bonds as edges, and many
 prediction tasks about it are graph-level: whether a compound is toxic, or whether it is
 active against a given biological target. Because molecules vary in size and
-structure, this is exactly the regime that calls for a model able to handle graphs of
-varying structure and return one prediction per graph.
+structure, this is exactly the regime that calls for a model able to handle graphs
+that vary in this way and return one prediction per graph.
 
 \begin{figure*}[t]
   \centering
@@ -158,11 +155,12 @@ varying structure and return one prediction per graph.
 
 This capability feeds directly into drug discovery, where large libraries of
 candidate compounds are screened to prioritize the few worth synthesizing and
-testing in the laboratory, a process in which an accurate graph-level predictor
-can save considerable experimental effort. The same idea applies in materials
-science, where the atomic structure of a material is represented as a graph and a
-graph-level model predicts a physical property such as its stability or its
-mechanical strength.
+testing in the laboratory. A graph-level model trained to predict antibacterial
+activity, for instance, identified halicin, a compound structurally unlike
+conventional antibiotics and effective against resistant
+bacteria~\cite[-3pc]{stokes2020}. The same idea applies in materials science, where the
+atomic structure of a material is represented as a graph and a graph-level model
+predicts a physical property such as its stability or its mechanical strength.
 
 Across all three levels, the graph is used in different
 ways, with the level of the task determining what is predicted and how a model

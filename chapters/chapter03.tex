@@ -96,7 +96,7 @@ is the matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$ with entries
 so that each entry records the presence or absence of a single edge.
 
 The adjacency matrix depends on the node
-indexing.\marginnote{There are $n!$ possible indexings of $n$ nodes, and
+indexing.\marginnote[-1.75pc]{There are $n!$ possible indexings of $n$ nodes, and
 each yields a valid adjacency matrix of the same graph.} Reordering the
 nodes permutes the rows and columns of $\mathbf{A}$, producing a different
 matrix that describes exactly the same graph.
@@ -127,19 +127,18 @@ presence of $(j, i)$. The adjacency entry reads $A_{ij} = 1$ exactly when
 $(i, j) \in E$, so $\mathbf{A}$ is in general not symmetric and row $i$ lists
 the targets of the edges leaving node $i$. The degree of a node accordingly
 splits in two: its \textit{out-degree}, the number of edges leaving it, and
-its \textit{in-degree}, the number of edges arriving at it. Unless stated
-otherwise, the graphs treated in this work are undirected.
+its \textit{in-degree}, the number of edges arriving at it.
 
-A second distinction concerns whether edges carry a magnitude. In a
+A second distinction concerns whether edges carry a magnitude. 
+In an \textit{unweighted} graph, every edge counts the same and
+\eqref{eq:adjacency-matrix} applies as stated. In a
 \textit{weighted} graph, each edge has an associated scalar weight
 $w_{ij} \in \mathbb{R}$, expressing, for instance, the strength of a
 relationship or a physical distance; the adjacency matrix then stores
-$A_{ij} = w_{ij}$ in place of $1$ (Figure~\ref{fig:directed-weighted}). In an
-\textit{unweighted} graph, every edge counts the same and
-\eqref{eq:adjacency-matrix} applies as stated. A scalar weight can be
-viewed as the special case $c = 1$ of the edge feature vectors introduced
-in Section~\ref{sec:formal-definitions}, that is, a single number attached
-to each edge.
+$A_{ij} = w_{ij}$ in place of $1$ (Figure~\ref{fig:directed-weighted}).
+A scalar weight can be viewed as the special case $c = 1$ of the edge 
+feature vectors introduced in Section~\ref{sec:formal-definitions}, that is, 
+a single number attached to each edge.
 
 \begin{figure}[h]
   \centering
@@ -164,11 +163,9 @@ pair of nodes is called \textit{simple}. A \textit{bipartite} graph, in
 contrast, is not a departure from simplicity but a structural subclass of
 it: its nodes partition into two disjoint subsets, and every edge connects a node
 of one subset with a node of the other, as in a network of users and products
-joined by purchases. Because of this specificity, such graphs are explicitly 
-named bipartite; a graph described only as simple implies no such partition.
+joined by purchases. A graph with this structure is always identified as bipartite,
+so that a graph described only as simple implies no such partition.
 Figure~\ref{fig:nonsimple-bipartite} illustrates the three cases.
-As established in Chapter~\ref{ch:introduction}, the graphs treated
-in this work are simple.
 
 \begin{figure*}[t]
   \centering
@@ -182,9 +179,7 @@ in this work are simple.
 \end{figure*}
 
 The last distinction concerns the kinds of entities and relations a graph
-contains.\marginnote{The homogeneous/heterogeneous terminology comes from
-the network analysis and machine learning literature rather than from
-classical graph theory.} A graph is \textit{homogeneous} when all of its
+contains. A graph is \textit{homogeneous} when all of its
 nodes represent one kind of entity and all of its edges represent one kind
 of relation: every node then shares the same feature space $\mathbb{R}^d$
 and every edge the same feature space $\mathbb{R}^c$. A citation network is
@@ -194,11 +189,9 @@ each with its own semantics and, typically, its own feature
 space~\cite{hamilton2020}. A citation network that includes both papers and
 their authors is heterogeneous: papers and authors are different kinds of
 entities, joined by a relation of authorship.
-Figure~\ref{fig:homogeneous-heterogeneous} contrasts the two settings. As
-stated in Chapter~\ref{ch:introduction}, this work treats homogeneous
-graphs.
+Figure~\ref{fig:homogeneous-heterogeneous} contrasts the two settings. 
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{homogeneous-heterogeneous}
   \caption[A homogeneous and a heterogeneous graph.]{%
@@ -209,6 +202,9 @@ graphs.
   }
   \label{fig:homogeneous-heterogeneous}
 \end{figure}
+
+As established in Chapter~\ref{ch:introduction}, the graphs treated in this work 
+are undirected, simple, and homogeneous.
 
 \section{Walks, Connectivity, Homophily, and Isomorphism}
 \label{sec:structural-properties}
@@ -302,7 +298,7 @@ A classical heuristic, the Weisfeiler--Leman test, distinguishes
 most non-isomorphic graphs in practice~\cite{morris2023}, and it reappears later in this work
 in connection with the expressive power of graph neural networks.
 
-\begin{marginfigure}
+\begin{marginfigure}[-28pc]
   \includegraphics{isomorphic-graphs}
   \caption[Two isomorphic graphs.]{%
     Two graphs that are drawn differently but are isomorphic: a bijection
@@ -347,7 +343,7 @@ theory~\cite{chung1997}, the \textit{graph Laplacian}
 Each diagonal entry of $\mathbf{L}$ is the degree of the corresponding node,
 and each off-diagonal entry is $-1$ where an edge is present and $0$
 otherwise. For the six-node graph of Figure~\ref{fig:adjacency-matrix},
-under the node indexing of its centre panel and with
+under the node indexing of its center panel and with
 $\mathbf{D} = \operatorname{diag}(2, 3, 2, 3, 3, 1)$, the Laplacian is
 \[
   \mathbf{L} =
@@ -363,7 +359,7 @@ $\mathbf{D} = \operatorname{diag}(2, 3, 2, 3, 3, 1)$, the Laplacian is
 
 The Laplacian admits a direct interpretation in terms of how values spread
 over a graph. Assigning a real number to each node defines a vector
-$\mathbf{f} \in \mathbb{R}^n$ called a \textit{graph signal}, 
+$\mathbf{f} \in \mathbb{R}^n$ called a \textit{graph signal},
 with component $f_i$ the value at node $i$. The Laplacian measures how much
 such an assignment varies across edges through the quadratic form
 \begin{equation}
@@ -405,7 +401,7 @@ For many purposes the Laplacian is rescaled by the node degrees. The
 \end{equation}
 where $\mathbf{I}$ is the identity matrix and $\mathbf{D}^{-1/2}$ is the
 diagonal matrix of inverse square-root
-degrees.\marginnote{For a node of degree zero the corresponding entry of
+degrees.\marginnote[-1pc]{For a node of degree zero the corresponding entry of
 $\mathbf{D}^{-1/2}$ is taken to be zero by convention.} It is again symmetric
 and positive semidefinite, so it shares the spectral structure just
 described, while its eigenvalues are confined to the interval

@@ -43,7 +43,7 @@ fundamental obstacle to deep message-passing networks~\cite[-6pc]{li2018}.
     Node representations at increasing depth. With few layers the representations
     of different nodes remain distinct; as layers are stacked, repeated smoothing
     drives them together, until at large depth the nodes of each connected
-    component approach a common representation and can no longer be told apart.
+    component converge toward a common representation and can no longer be told apart.
   }
   \label{fig:oversmoothing}
 \end{figure}
@@ -63,14 +63,14 @@ network lets any node draw on any other. However, the number of
 nodes within $k$ hops typically grows exponentially with $k$, yet the
 representation summarizing this region is a vector of fixed dimension, the same
 size whether it gathers a handful of nodes or thousands. Information from an
-exponentially growing region is compressed into a fixed-size representation, and
-the compression is lossy (Figure~\ref{fig:oversquashing}).
+exponentially growing region is compressed into a fixed-size representation,
+making information loss unavoidable (Figure~\ref{fig:oversquashing}).
 
 \begin{figure}
   \centering
   \includegraphics{oversquashing}
   \caption[A growing receptive field squashed into a fixed-size vector.]{%
-    The receptive field of a node, unrolled over layers, grows exponentially: each
+    The receptive field of a node, unrolled over layers, typically grows exponentially: each
     additional hop multiplies the number of nodes that must be summarized. The
     representation gathering this region is a vector of fixed size, independent of
     how many nodes feed into it, so information from the wider neighborhood is
@@ -145,8 +145,8 @@ and therefore every message-passing network --- colors identically. The simplest
 examples arise among pairs of \textit{regular} graphs, in which every node has the
 same degree (Figure~\ref{fig:wl-indistinguishable}). All nodes begin with the same
 color; and whenever every node shares a color, each one has the same number of
-identically colored neighbors, so the refinement assigns them all the same new color
-in turn. The condition therefore reproduces itself at every round, and the test never
+identically colored neighbors, so the refinement assigns them all the same new color.
+The condition therefore reproduces itself at every round, and the test never
 separates the nodes, so two such graphs receive the same final coloring. Yet regular
 graphs of the same degree need not be isomorphic, differing in structural properties
 the count of same-colored neighbors never exposes, such as whether they form one
