@@ -85,15 +85,15 @@ layer $k$ is
 where $\mathbf{W}^{(k)}$ is the layer's shared weight matrix, $\sigma$ is an
 elementwise nonlinearity, and $\widetilde{\deg}(i) = \deg(i) + 1$ is the degree
 of node $i$ after the addition of the self-loop. Two features of this form distinguish
- GCN from the general layer. First, the sum runs over $\mathcal{N}(i) \cup \{i\}$ rather than
-$\mathcal{N}(i)$: the node includes itself among the terms aggregated as a self-loop. 
+GCN from the general layer. First, the sum runs over $\mathcal{N}(i) \cup \{i\}$ rather than
+$\mathcal{N}(i)$: the node includes itself among the terms aggregated as a self-loop.
 This replaces the separate update over
 $\mathbf{h}_i^{(k-1)}$ used in the general equation; in GCN the node and its
 neighbors are treated by one and the same transformation, the distinction between
 message and update collapsing into a single aggregation over the closed
 neighborhood. Second, each term carries the coefficient
 $1/\!\sqrt{\widetilde{\deg}(i)}\sqrt{\widetilde{\deg}(j)}$, which scales a
-neighbor's contribution down when either endpoint 
+neighbor's contribution down when either endpoint
 has high degree. This \textit{symmetric normalization} keeps
 the magnitude of the aggregated vector from growing with the number of neighbors,
 and weights a neighbor by how distinctive the connection is rather than treating
@@ -225,7 +225,8 @@ where $\sigma$ is the logistic function, mapping the real-valued score to a valu
 in $(0,1)$ read as the predicted probability of an edge between $i$ and $j$. The
 inner product is large when the two embeddings point in a similar direction, so the
 decoder assigns high probability to pairs whose embeddings the encoder has placed
-close together. The decoder requires no parameters of its own.
+close together. The decoder requires no parameters of its own, which places the full
+responsibility for the prediction on the embeddings.
 
 \begin{figure*}[t]
   \centering
@@ -242,8 +243,9 @@ close together. The decoder requires no parameters of its own.
   \label{fig:encoder-decoder}
 \end{figure*}
 
-To train it toward this arrangement, a supervised signal is needed, and the structure 
-of the graph itself supplies it. The edges actually present in the graph are the
+The encoder must therefore arrange the embeddings so that connected nodes are close and 
+unconnected ones far apart. To train it toward this arrangement, a supervised signal is needed, 
+and the structure of the graph itself supplies it. The edges actually present in the graph are the
 \textit{positive examples}: pairs that should receive a high score. Pairs of nodes
 with no observed edge between them are the \textit{negative examples}: pairs that should
 receive a low score. A link-prediction model is trained to raise the score on
@@ -287,7 +289,7 @@ Training matches the reconstructed adjacency against the observed one on the
 positive and sampled negative pairs of Section~\ref{sec:encoder-decoder}: the GCN
 encoder is fitted so that the embeddings it produces, when combined by the inner
 product, reproduce the edges of the graph. The arrangement the encoder learns is
-the one the decoder discriminates --- embeddings of connected nodes made similar, those
+the one the decoder rewards --- embeddings of connected nodes made similar, those
 of unconnected nodes made dissimilar --- which is the arrangement a GCN
 produces by construction, since its smoothing brings the embeddings of adjacent
 nodes together.
