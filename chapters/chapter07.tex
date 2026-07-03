@@ -5,8 +5,8 @@
 The message-passing framework of Chapter~\ref{ch:message-passing} fixes the form
 of a GNN layer without fixing its content: a message per neighbor, an
 order-insensitive aggregation, and an update, with the three functions left open.
-The design space of Section~\ref{sec:design-space} is the set of admissible
-choices for them. This chapter selects three points in that space, one for each
+The design space of Section~\ref{sec:design-space} consists of the admissible
+choices for these functions. This chapter selects three points in that space, one for each
 of the task levels introduced in Chapter~\ref{ch:applications}. Each architecture
 is presented as an instance of the general
 equation~\eqref{eq:message-passing}, and each is paired with the elements its task
@@ -18,15 +18,14 @@ graph-level tasks.
 \section{Node-Level Learning}
 \label{sec:node-level-arch}
 
-A node-level task assigns a prediction to each node of a single graph. The
-machinery this requires beyond a message-passing layer is small, because most of
-it is already in place. Chapter~\ref{ch:message-passing} established that stacking
+A node-level task assigns a prediction to each node of a single graph.
+Chapter~\ref{ch:message-passing} established that stacking
 $K$ layers produces, for every node, an embedding $\mathbf{h}_i^{(K)}$ that
 summarizes the node together with its $K$-hop context, and that the per-node
 output of an equivariant network follows the nodes under relabeling, as a
 node-level task requires. Chapter~\ref{ch:message-passing} also established the
 transductive setting in which such a task is trained. What remains is to specify
-how a prediction is read off from each embedding, and then to fix the three
+how a prediction is computed from each embedding, and then to fix the three
 functions of the layer.
 
 \subsection{From Embeddings to Predictions}
@@ -36,10 +35,10 @@ In node classification each node carries a label drawn from a fixed set of
 classes, and the goal is to predict the labels of the unlabeled nodes. The
 embedding $\mathbf{h}_i^{(K)}$ produced by the final message-passing layer is the
 representation on which this prediction is based. A prediction is obtained by
-applying a \textit{classifier} to each node's embedding: a function shared across
-nodes that maps an embedding to a distribution over the classes. The standard
-choice maps the embedding to one score per class through a learnable linear
-transformation and normalizes these scores to a distribution,
+applying a \textit{classifier} to each node's embedding: a function shared across nodes 
+that produces a prediction from each embedding. A common choice is a linear classifier, 
+which maps the embedding to one score per class through a learnable linear transformation 
+and then normalizes these scores to a probability distribution,
 \begin{equation}
   \hat{\mathbf{y}}_i = \operatorname{softmax}\!\left(
     \mathbf{W}\,\mathbf{h}_i^{(K)}
@@ -52,27 +51,25 @@ function that turns a vector of scores into nonnegative entries summing to one.
 The entry of $\hat{\mathbf{y}}_i$ with largest value is the predicted class of
 node $i$. Because the classifier is shared across nodes and the embeddings are
 produced equivariantly, the prediction attached to a node is unchanged by a
-relabeling of the graph, that is, it moves with the node, exactly as the task requires.
+relabeling of the graph, that is, it moves with the node.
 
 \subsection{The Graph Convolutional Network}
 \label{sec:gcn}
 
 The \textit{Graph Convolutional Network (GCN)} is the instance of the message-passing
-framework obtained by taking the aggregation
-to be a normalized sum of the neighbors' representations, with no
-per-neighbor weighting beyond that normalization~\cite{kipf2017}. It is presented
-here first in the per-node form that exhibits it as an instance of the general
-equation, and then in the matrix form that connects it to the spectral
-perspective of Section~\ref{sec:laplacian-spectral}.
+framework obtained by taking the aggregation to be a normalized sum over the closed
+neighborhood, each term weighted by the degrees of its two incident
+nodes~\cite{kipf2017}. It is presented here first in the per-node form that
+exhibits it as an instance of the general equation, and then in the matrix form
+that connects it to the spectral perspective of
+Section~\ref{sec:laplacian-spectral}.
 
-To exhibit GCN as a message-passing layer, fix the three functions of the general
-equation~\eqref{eq:message-passing} as follows. The message from a neighbor $j$ 
-is its representation, scaled by a coefficient that depends only on the degrees 
-of the two endpoints. There is no separate weighting of the central node, 
-and edge features play no role. The aggregation is the sum. The update
-applies a single shared linear transformation to the aggregated neighborhood,
-followed by a nonlinearity. Writing this out, the representation of node $i$ at
-layer $k$ is
+As an instance of the general message-passing equation, GCN fixes its 
+three functions as follows. Messages are aggregated over the 
+closed neighborhood $\mathcal{N}(i)\cup\{i\}$ by summing the representations
+ of the node and its neighbors, each weighted by a normalization coefficient, so that
+the aggregation is a normalized sum. The update then applies a shared linear transformation 
+followed by an elementwise nonlinearity. The resulting layer computes
 \begin{equation}
   \mathbf{h}_i^{(k)} = \sigma\!\left(
     \mathbf{W}^{(k)}
@@ -82,32 +79,27 @@ layer $k$ is
   \right),
   \label{eq:gcn-node}
 \end{equation}
-where $\mathbf{W}^{(k)}$ is the layer's shared weight matrix, $\sigma$ is an
-elementwise nonlinearity, and $\widetilde{\deg}(i) = \deg(i) + 1$ is the degree
-of node $i$ after the addition of the self-loop. Two features of this form distinguish
-GCN from the general layer. First, the sum runs over $\mathcal{N}(i) \cup \{i\}$ rather than
-$\mathcal{N}(i)$: the node includes itself among the terms aggregated as a self-loop.
-This replaces the separate update over
-$\mathbf{h}_i^{(k-1)}$ used in the general equation; in GCN the node and its
-neighbors are treated by one and the same transformation, the distinction between
-message and update collapsing into a single aggregation over the closed
-neighborhood. Second, each term carries the coefficient
-$1/\!\sqrt{\widetilde{\deg}(i)}\sqrt{\widetilde{\deg}(j)}$, which scales a
-neighbor's contribution down when either endpoint
-has high degree. This \textit{symmetric normalization} keeps
-the magnitude of the aggregated vector from growing with the number of neighbors,
-and weights a neighbor by how distinctive the connection is rather than treating
-all neighbors of a high-degree node alike.
+where $\mathbf{W}^{(k)}$ is the shared weight matrix,
+$\sigma$ is an elementwise nonlinearity, and
+$\widetilde{\deg}(v)=\deg(v)+1$ denotes the degree of any node $v$
+after adding a self-loop.
 
-The aggregation~\eqref{eq:gcn-node} is a sum over a set and is therefore invariant
-to the order of the neighbors, and the weight matrix $\mathbf{W}^{(k)}$ is shared
-across all nodes. The layer thus meets the permutation conditions of
-Section~\ref{sec:permutation} by the same argument as the general layer.
+Every term of the sum ---
+including the node's own, entering through the self-loop with $j=i$ --- is weighted
+by the coefficient $1/\!\sqrt{\widetilde{\deg}(i)\widetilde{\deg}(j)}$. This
+\textit{symmetric normalization} scales each contribution by the degrees of the two
+incident nodes, preventing the aggregated representation from growing with the size
+of the neighborhood and reducing the influence of highly connected nodes. 
 
-When the same operation is written for all nodes at once, the per-node
-sum~\eqref{eq:gcn-node} becomes a single matrix product. The self-connection and
-the degree normalization are first absorbed into two matrices. Adding a self-loop
-at every node gives
+Because the sum runs over the closed neighborhood rather than over
+$\mathcal{N}(i)$ alone, the separate update of the central node used in the general
+framework is not performed as a distinct step. The node and its neighbors are
+folded into a single normalized aggregation and processed by the same linear
+transformation.
+
+Applying the same operation to all nodes yields the matrix form of the layer.
+The self-loops and the degree normalization are captured by two matrices.
+Adding a self-loop at every node gives
 \begin{equation}
   \tilde{\mathbf{A}} = \mathbf{A} + \mathbf{I},
   \qquad
@@ -116,12 +108,7 @@ at every node gives
 \end{equation}
 where $\tilde{\mathbf{A}}$ is the adjacency matrix with self-loops and
 $\tilde{\mathbf{D}}$ is its degree matrix, the diagonal matrix holding the row
-sums of $\tilde{\mathbf{A}}$. The substitution of $\tilde{\mathbf{A}}$ for
-$\mathbf{A}$ and of $\tilde{\mathbf{D}}$ for the degree matrix of $\mathbf{A}$ is
-the \textit{renormalization trick}: it folds the self-connection of
-Equation~\eqref{eq:gcn-node} into the propagation and, as the spectral reading
-below makes precise, keeps the operator's spectrum within a stable range. With
-these matrices the layer is
+sums of $\tilde{\mathbf{A}}$. With these matrices the layer is
 \begin{equation}
   \mathbf{H}^{(k)} = \sigma\!\left(
     \tilde{\mathbf{D}}^{-1/2}\,
@@ -133,54 +120,63 @@ these matrices the layer is
   \label{eq:gcn-matrix}
 \end{equation}
 where $\mathbf{H}^{(k)}$ is the matrix of node representations of
-Section~\ref{sec:message-passing-layer}. The factors $\tilde{\mathbf{D}}^{-1/2}$
-on each side of $\tilde{\mathbf{A}}$ supply the symmetric normalization,
-reproducing the coefficient
+Section~\ref{sec:message-passing-layer}. The matrix
+$\tilde{\mathbf{D}}^{-1/2}\tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-1/2}$ that acts on
+$\mathbf{H}^{(k-1)}$ is the \textit{propagation operator} of the layer, the object that
+mixes each node's representation with those of its neighbors. Its factors
+$\tilde{\mathbf{D}}^{-1/2}$ on each side of $\tilde{\mathbf{A}}$ supply the
+symmetric normalization, reproducing the coefficient
 $1/\!\sqrt{\widetilde{\deg}(i)}\sqrt{\widetilde{\deg}(j)}$
 of the per-node form for each pair.
-
-The operator $\tilde{\mathbf{D}}^{-1/2}\tilde{\mathbf{A}}\tilde{\mathbf{D}}^{-1/2}$
-in~\eqref{eq:gcn-matrix} connects the layer to the spectral perspective of
-Section~\ref{sec:laplacian-spectral}. Setting the self-loops aside for a moment,
-the symmetric normalized Laplacian of
-Equation~\eqref{eq:normalized-laplacian} is
-$\mathbf{L}_{\mathrm{sym}} = \mathbf{I} - \mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$,
-so the propagation matrix without self-loops is exactly
-$\mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2} = \mathbf{I} - \mathbf{L}_{\mathrm{sym}}$.
-A GCN layer therefore applies the operator $\mathbf{I} - \mathbf{L}_{\mathrm{sym}}$
-to the node representations before the learnable transformation. This is the sense
-in which the layer is \textit{spectral}: it acts through a fixed function of the
-graph Laplacian, the operator whose spectrum
-Section~\ref{sec:laplacian-spectral} showed to be tied to the connectivity of the graph. The
-present work uses only the resulting operator $\mathbf{I} - \mathbf{L}_{\mathrm{sym}}$
-and does not develop the broader spectral construction from which it
-derives. The renormalization trick~\eqref{eq:gcn-renormalization} addresses a
-difficulty of this operator: applying a propagation matrix of this form
-repeatedly, as a deep stack of layers does, can amplify or attenuate the
-representations to the point of numerical instability. Adding self-loops, which
-replaces $\mathbf{A}$ by $\tilde{\mathbf{A}} = \mathbf{A} + \mathbf{I}$ and the
-degree matrix accordingly, stabilizes the repeated application and is the form
-used in practice~\cite{kipf2017}.
-
+ 
+The propagation operator connects the layer to the spectral perspective of
+Section~\ref{sec:laplacian-spectral}. In the original formulation, GCN is obtained
+by applying a first-order approximation to a spectral graph convolution,
+yielding the operator $\mathbf{I} + \mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$
+acting on the node representations before the learnable linear transformation. In
+terms of the symmetric normalized Laplacian of
+Equation~\eqref{eq:normalized-laplacian}, this operator equals
+$2\mathbf{I} - \mathbf{L}_{\mathrm{sym}}$. This is the sense in which the layer is
+\textit{spectral}: it acts through a fixed function of the graph Laplacian, the operator 
+whose spectrum Section~\ref{sec:laplacian-spectral} showed to be tied to the connectivity of the
+graph. The intermediate steps of this spectral derivation are beyond the present
+scope, which uses only the resulting operator; the complete derivation is given in
+the original work~\cite[-5pc]{kipf2017}.
+ 
+\textit{The renormalization trick}~\eqref{eq:gcn-renormalization} is what turns this
+first-order operator into the propagation operator the layer actually applies. It
+addresses a spectral difficulty: the eigenvalues of
+$\mathbf{I} + \mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$ lie in the interval
+$[0, 2]$, so applying it repeatedly, as a deep stack of layers does,
+can amplify the node representations to the point of numerical instability~\cite{kipf2017}.
+Substituting $\tilde{\mathbf{A}}$ for $\mathbf{A}$ and $\tilde{\mathbf{D}}$ for the
+degree matrix of $\mathbf{A}$ shrinks this spectrum, reducing the largest eigenvalue
+to well below $2$ in practice, which stabilizes the repeated
+application~\cite[1pc]{wu2019}.
+ 
 The spectral reading also explains the effect a GCN layer has on the
 representations. The quadratic form $\mathbf{f}^\top \mathbf{L} \mathbf{f}$ of
 Equation~\eqref{eq:laplacian-quadratic-form} measures how much an assignment of
-values to nodes varies across edges. The operator $\mathbf{I} -
-\mathbf{L}_{\mathrm{sym}}$ attenuates the components of a signal associated with
-the large eigenvalues of the Laplacian --- the components that vary most across
-edges --- and preserves those associated with the small eigenvalues. Applying it
-therefore brings the representation of each node toward the average of its
-neighbors, reducing the variation across edges and making adjacent nodes more
-similar with every layer. This is \textit{smoothing}: a GCN layer smooths the node
-representations over the edges of the graph.
+values to nodes varies across edges, and the same notion of variation applies to
+$\mathbf{L}_{\mathrm{sym}}$: an eigenvector of
+$\mathbf{L}_{\mathrm{sym}}$ with a large eigenvalue is one whose values vary most
+across edges, and one with a small eigenvalue varies little. The propagation
+operator applies a fixed function of this Laplacian that inverts the order of its
+spectrum, sending the large eigenvalues to small factors and the small eigenvalues
+to large ones, so that the components varying most across edges are attenuated and
+those varying least are preserved. It thus acts as a low-pass filter on the
+graph~\cite{wu2019}, and repeated application reduces the variation across edges,
+bringing the representations of adjacent nodes closer together with every layer.
+This is \textit{smoothing}: a GCN layer smooths the node representations over the
+edges of the graph.
 
 Smoothing is the operative bias of GCN, and it is the right bias exactly when the
 graph is homophilous. Section~\ref{sec:structural-properties} described a graph as
 homophilous when adjacent nodes tend to share attributes.
-On such a graph, making adjacent nodes
-similar aligns the representations with the labels, which is why GCN is effective
-for node classification despite the simplicity of its aggregation. The same
-mechanism becomes a liability when the assumption fails --- when adjacent nodes
+On such a graph, making the representations of adjacent nodes
+more similar aligns the learned representations with the labels, which is why GCN is effective
+for node classification. The same mechanism 
+becomes a liability when the assumption fails --- when adjacent nodes
 differ systematically, or when so many layers are stacked that all representations
 are smoothed toward a common value --- a limitation taken up in
 Chapter~\ref{ch:limitations}.
@@ -200,7 +196,7 @@ whose only data is the presence or absence of edges.
 \subsection{The Encoder--Decoder Framework}
 \label{sec:encoder-decoder}
 
-The framework divides a link-prediction model into two stages
+The encoder-decoder framework divides a link-prediction model into two stages
 (Figure~\ref{fig:encoder-decoder}). The
 \textit{encoder} is a message-passing network of the kind built in
 Chapter~\ref{ch:message-passing}: it maps the graph to node embeddings,
@@ -252,20 +248,13 @@ receive a low score. A link-prediction model is trained to raise the score on
 positive pairs and lower it on negative pairs, exactly as a binary classifier is
 trained to separate two classes.
 
-Two practical points govern how these examples are formed. First, the positive
-edges must be split, as any supervised problem splits its labels: a portion of the
-observed edges is held out from the graph given to the encoder and reserved for
-evaluation, so that the model is tested on its ability to recover edges it was not
-shown. The edges used for evaluation are removed from $\mathbf{A}$ during training,
-not merely from the loss, since an edge left in the adjacency matrix would let the
-encoder see the very connection it is meant to predict. Second, the negative
-examples must be chosen, because they are far more numerous than the positive ones:
-a graph has at most $\binom{n}{2} = n(n-1)/2$ possible edges and typically far fewer actual ones,
-so the non-edges vastly outnumber the edges. Using all of them would unbalance
-the training signal. The standard remedy is \textit{negative sampling}: at each step a
-subset of negative examples is drawn at random, in number
-comparable to the positive edges, so that the two classes contribute comparably to
-the training signal.
+Two practical points govern how these examples are formed. First, the positive edges are split, 
+as in any supervised problem: a portion is held out for evaluation and removed from $\mathbf{A}$ 
+during training, not merely from the loss, since otherwise the encoder would see the very edges it is
+meant to predict. Second, the negative examples must be sampled, because non-edges vastly outnumber 
+observed edges: a graph has at most $\binom{n}{2}=n(n-1)/2$ possible edges but typically 
+far fewer actual ones. The standard remedy is \textit{negative sampling}, which draws a random subset 
+of non-edges, comparable in number to the positive edges, so that the training signal remains balanced.
 
 \subsection{The Graph Autoencoder}
 \label{sec:gae}
@@ -286,7 +275,7 @@ where $\sigma$ is applied elementwise and the entry $\hat{A}_{ij}$ is the predic
 probability of an edge between $i$ and $j$.
 
 Training matches the reconstructed adjacency against the observed one on the
-positive and sampled negative pairs of Section~\ref{sec:encoder-decoder}: the GCN
+positive and sampled negative pairs: the GCN
 encoder is fitted so that the embeddings it produces, when combined by the inner
 product, reproduce the edges of the graph. The arrangement the encoder learns is
 the one the decoder rewards --- embeddings of connected nodes made similar, those
@@ -324,44 +313,38 @@ pooling}: a function that maps the collection of node embeddings to one vector,
 where $\mathbf{h}_{\mathcal{G}}$ is the graph embedding, on which a classifier of
 the form~\eqref{eq:node-classifier} is then applied to predict the graph's label.
 
-The readout is subject to one essential requirement, fixed in
-Section~\ref{sec:permutation}: a graph-level prediction must be unchanged by a
+The readout is subject to one essential requirement:
+a graph-level prediction must be unchanged by a
 relabeling of the nodes, so the readout must be invariant to the order of its
 inputs. It takes a collection of node embeddings and must return the same vector whatever
 order they are listed in. This is the permutation invariance of
 Equation~\eqref{eq:permutation-invariance},
 and it restricts the readout to the order-insensitive
 operations of Section~\ref{sec:aggregation-function}: the sum, the mean, and the
-maximum, taken coordinatewise over the node embeddings. The same property that
-made these operations suitable for aggregating a neighborhood makes them suitable
-for aggregating a whole graph; the readout is neighborhood aggregation applied once
-more, over all nodes at once.
+maximum, taken coordinatewise over the node embeddings. The readout 
+is neighborhood aggregation applied once more, over all nodes at once.
 
-The choice among sum, mean, and maximum is not neutral for a graph-level task,
-because the readout is the last point at which structural information can be
-preserved or lost, and the three operations differ in what they retain. The mean
+The choice among sum, mean, and maximum is not neutral. The mean
 and the maximum can discard information that distinguishes graphs: the mean of a set is
 unchanged when the set is duplicated, and the maximum ignores all but the extreme
 value in each coordinate, so two graphs differing in the multiplicity or the
 distribution of their node embeddings can be mapped to the same vector. The sum
 retains more, because it grows with the number of nodes and reflects the full
 collection rather than its average or its extremes. This difference is decisive for
-the architecture that follows, whose design begins from the demand that no
+the architecture that follows, whose design begins from the requirement that no
 distinguishing information be discarded.
 
 \subsection{The Graph Isomorphism Network}
 \label{sec:gin}
 
-The \textit{Graph Isomorphism Network (GIN)} is the instance of the message-passing
-framework designed to retain as much distinguishing information as the framework
-allows~\cite{xu2019}. Its motivation is the expressive-power question of
-Section~\ref{sec:expressive-power}: a graph-level model is only as good as its
-ability to tell non-isomorphic graphs apart, and
-Section~\ref{sec:expressive-power} established that no message-passing network can
-exceed the discriminative power of the \mbox{1-WL} test. GIN is the architecture
-that reaches this ceiling, and the requirement that
-fixes its design is the preservation of neighborhood information through the
-aggregation.
+The \textit{Graph Isomorphism Network (GIN)} is the instance of the 
+message-passing framework designed to retain as much distinguishing information 
+as the framework allows~\cite{xu2019}. Its motivation is the expressive-power question
+introduced in Section~\ref{sec:expressive-power}: a graph-level model is only as good as 
+its ability to tell non-isomorphic graphs apart, and, as established there, no
+message-passing network can exceed the discriminative power of the \mbox{1-WL} test. 
+GIN is the architecture that reaches this ceiling, and the requirement that fixes its design is 
+the preservation of neighborhood information through the aggregation.
 
 The requirement can be stated precisely with one notion not yet needed. A
 neighborhood, taken as the collection of its neighbors' representations, may
@@ -372,11 +355,9 @@ may repeat and the number of repetitions is part of the object. For the aggregat
 to preserve all the information in a neighborhood, it must be \textit{injective}
 over multisets: it must map distinct neighborhood multisets to distinct vectors,
 never collapsing two different neighborhoods to the same aggregate. The mean and
-the maximum fail this requirement, for the reason noted for the readout in
-Section~\ref{sec:pooling-readout}: the mean cannot distinguish a neighborhood from
-its duplicate, and the maximum ignores all but the extreme value. The sum, by
-contrast, can be made injective over multisets, because it reflects every element
-and its multiplicity.
+the maximum fail this requirement, for the reasons discussed previously.
+The sum, by contrast, can be made injective
+over multisets, because it reflects every element and its multiplicity.
 
 GIN builds its layer on the sum accordingly. The aggregation is the sum over the
 neighborhood; the update combines the node's own representation with this sum and
@@ -391,8 +372,7 @@ distinction, giving
   \label{eq:gin}
 \end{equation}
 where $\operatorname{MLP}^{(k)}$ is the update function of
-the layer, and $\epsilon^{(k)}$ is a scalar --- fixed or learnable --- that weights
-the node's own representation against the summed neighborhood. 
+the layer, and $\epsilon^{(k)}$ is a scalar, which can be fixed or learnable. 
 The MLP in the update can approximate an injective function of
 its input, so the composition of the sum and the update preserves the distinction
 between different closed neighborhoods. The term $(1 + \epsilon^{(k)})$ keeps the
@@ -401,15 +381,3 @@ rather than letting the two merge as they do in the closed-neighborhood sum of G
 Together these choices make one GIN layer as discriminating as one round of the
 \mbox{1-WL} refinement of Section~\ref{sec:expressive-power}, which is the most a
 message-passing layer can be.
-
-The contrast with GCN is exact and is the point of the construction. GCN smooths,
-deliberately making adjacent nodes similar, which serves node classification on
-homophilous graphs but discards the neighborhood detail that distinguishes graphs.
-GIN refuses to smooth, preserving that detail instead, because its task is not to
-make neighbors similar but to tell structures apart.
-
-This placement is the thread running through the three architectures of this
-chapter. All three are the same message-passing layer of
-Chapter~\ref{ch:message-passing}. The design space, read as a space of such decisions 
-rather than as a list of separate models, is what reveals the three architectures 
-as instances of a single construction rather than three unrelated networks.

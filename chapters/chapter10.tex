@@ -27,7 +27,7 @@ accommodate. The MLP was examined as the concrete case: its
 reliance on a fixed input dimension and a fixed coordinate ordering makes it
 unable to operate on graphs without discarding the very structure that carries
 the signal. From this failure the requirements on any graph model were derived,
-with permutation invariance and equivariance foremost among them.
+with permutation invariance and equivariance playing a central role.
 
 On these foundations the message-passing framework was developed as the
 unifying formulation. A node's representation was defined through the repeated
@@ -37,8 +37,8 @@ equivariance requirements by construction. The framework was then examined throu
 its principal implications: the receptive field that successive layers induce, the distinction
 between the transductive and inductive settings, the expressive power of the
 resulting models and its ceiling, and the design space that the three functions
-leave open. The MLP reappeared within this space as the
-degenerate case in which the neighborhood is ignored, locating it as a
+leave open. The MLP reappeared within this space as the degenerate case of a 
+graph with no relations, whose nodes are all independent, locating it as a 
 particular case of the same framework rather than a separate object.
 
 The three representative architectures were then derived as instances of the
@@ -46,7 +46,7 @@ framework, one for each level of graph learning. GCN was presented for node
 classification, GAE for link prediction through the encoder--decoder view, and
 GIN for graph classification, with injective aggregation motivated as the choice that reaches
 the expressive ceiling the framework permits. Each architecture was obtained by specializing
-the message, aggregation, and update functions, placing the three as points in
+the message, aggregation, and update functions, placing them in
 the single design space.
 
 The architectures were implemented on standard benchmarks --- Cora for GCN,
@@ -55,22 +55,20 @@ reproducible code in a companion repository. Each was evaluated against a
 MLP baseline that assumes no graph structure and predicts from node
 features alone. Across all three tasks the architecture that uses the graph
 improves on the baseline that does not, confirming in practice the predictive
-benefit that the theory anticipates: the relational structure carries
-information, and a model built to respect it extracts signal that a
+benefit that the theory anticipates: when the data has an underlying graph structure, 
+the relational structure carries information, and a model built to exploit it extracts signal that a
 feature-only model cannot.
 
-Finally, the limitations of the framework were examined in their own right.
-Oversmoothing, oversquashing, heterophily, and the ceiling on expressive power
-were each traced to the framework's defining operation rather than to any
-particular architecture, establishing that they are properties of message
-passing itself.
+Finally, the limitations of the framework were examined on their own: oversmoothing, 
+oversquashing, heterophily, and the ceiling on expressive power, highlighting the 
+mechanisms that give rise to them and their implications for the design 
+and performance of these models.
 
-The contribution of the work is the reference document itself. Its value lies
-not in any single result but in the assembly: a path from the motivation for
-learning on graphs through to the limits of the message-passing framework, with the
-theory, the architectures, and their evaluation developed in one consistent
-notation and one continuous line of argument, intended to serve as a foundational
-resource for the study of the field.
+The contribution of the work is the reference document itself. Its value lies not in 
+any single result but in the assembly: a path from the motivation for learning on graphs 
+to the limits of the message-passing framework, with the theory, architectures, and their 
+evaluation developed in a consistent notation and continuous line of argument, 
+intended to serve as a foundational resource for the study of the field.
 
 \section{Directions for Future Research}
 \label{sec:future-work}
@@ -85,7 +83,7 @@ new domains and tasks, and architectures that move beyond message passing.
 \label{sec:future-limitations}
 
 Chapter~\ref{ch:limitations} established the limitations of message passing as
-consequences of its mechanism. Each has since motivated a direction of research
+consequences of its mechanism. Each has motivated a direction of research
 aimed at overcoming it.
 
 The ceiling on useful depth imposed by oversmoothing is addressed by
@@ -98,7 +96,7 @@ by mitigating the associated bottleneck; one direction replaces local propagatio
 with global attention mechanisms, a direction discussed separately below. 
 Heterophily is met by aggregation schemes that no longer assume neighbors are similar:
 separating a node's own representation from its neighbors' and combining
-information across several rounds of neighborhood are designs identified as
+information across multiple rounds of neighborhood are designs identified as
 effective precisely where the homophily assumption fails~\cite[-7pc]{zhu2020}. 
 The expressivity ceiling set by the \mbox{1-WL} test is raised by computations that refine
 over tuples of nodes rather than single nodes, forming a higher-order hierarchy
@@ -114,8 +112,8 @@ The aggregation step was confined to sum, mean, and max. Replacing it with a
 learned, attention-based weighting of neighbors, so that a node determines how much each
 neighbor contributes, yields \textit{Graph Attention Networks (GAT)}~\cite[-5pc]{velickovic2018}.
 Separating the central node's own representation and learning to aggregate from a
-sampled subset of the neighborhood yields \textit{GraphSAGE}, an inductive architecture
-built for large graphs and unseen nodes~\cite[-2pc]{hamilton2017}. Both remain within 
+sampled subset of the neighborhood yields \textit{GraphSAGE}, an architecture
+built for large graphs~\cite[-2pc]{hamilton2017}. Both remain within 
 message passing while exploring regions of its design space, such as learned aggregation 
 and neighborhood sampling.
 
@@ -159,7 +157,7 @@ oversquashing --- a distant node is now reachable in a single attention step rat
 many hops --- at the cost of the locality that gives message passing its scalability and inductive bias.
 
 These directions extend the message-passing framework by relaxing assumptions such as locality,
- expressivity limits, or graph homogeneity, or by transferring the same foundations to 
+ expressivity limits, or graph homogeneity, as well as applying the same foundations to 
 new domains, tasks, and generative settings. The framework developed in this work is therefore 
 not an endpoint but a starting point, providing the basis from which these extensions and 
 applications can be understood and evaluated.

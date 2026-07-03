@@ -8,7 +8,7 @@ them precisely, that object must itself be defined formally. This
 chapter introduces the formal language of graphs used throughout the rest of
 this work. It first defines graphs, neighborhoods, and node and edge features;
 it then encodes graph structure algebraically through the adjacency
-matrix and distinguishes the main types of graphs; it examines the structural
+matrix and distinguishes the main types of graphs; it examines structural
 properties, from walks to isomorphism, on which later developments rely; it
 introduces the graph Laplacian and the spectral perspective it provides; and
 it closes with a summary of the notation fixed here.
@@ -55,6 +55,21 @@ and the \textit{degree} of node $i$ is the number of neighbors it has,
 In a social network, for example, the neighborhood of a person is the set
 of people connected to them, and the degree counts them.
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{adjacency-matrix}
+  \caption[A graph and its adjacency matrices under two node indexings.]{%
+    A graph on six nodes (left) and its adjacency matrices under two
+    different indexings of the nodes (center and right). The matrix on the
+    right is obtained from the one in the center by the permutation
+    $(1\,4)(2\,5)(3\,6)$, which exchanges nodes $1$ and $4$, $2$ and $5$, and
+    $3$ and $6$. Both matrices describe the same graph: reordering the
+    nodes permutes the rows and columns of $\mathbf{A}$.
+  }
+
+  \label{fig:adjacency-matrix}
+\end{figure*}
+
 Beyond its structure, a graph typically carries data~\cite{hamilton2020}.
 Each node $i$ has an associated \textit{node feature vector}
 $\mathbf{x}_i \in \mathbb{R}^d$, where $d$ is the node feature dimension,
@@ -96,7 +111,7 @@ is the matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$ with entries
 so that each entry records the presence or absence of a single edge.
 
 The adjacency matrix depends on the node
-indexing.\marginnote[-1.75pc]{There are $n!$ possible indexings of $n$ nodes, and
+indexing.\marginnote{There are $n!$ possible indexings of $n$ nodes, and
 each yields a valid adjacency matrix of the same graph.} Reordering the
 nodes permutes the rows and columns of $\mathbf{A}$, producing a different
 matrix that describes exactly the same graph.
@@ -106,14 +121,16 @@ but one per indexing, and no single one of them is privileged.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{adjacency-matrix}
-  \caption[A graph and its adjacency matrices under two node indexings.]{%
-    A graph on six nodes (left) and its adjacency matrices under two
-    different indexings of the nodes (center and right). Both matrices
-    describe the same structure: reordering the nodes permutes the rows and
-    columns of $\mathbf{A}$.
+  \includegraphics[width=\textwidth]{directed-weighted}
+  \caption[A directed graph and a weighted graph.]{%
+    Left: a directed version of the graph of
+    Figure~\ref{fig:adjacency-matrix} together with its adjacency matrix
+    (center). Edge orientation makes $\mathbf{A}$ asymmetric: row $i$
+    lists the targets of the edges leaving node $i$, and the highlighted
+    node is annotated with its in-degree and out-degree. Right: a weighted
+    graph, where edge thickness is proportional to the weight $w_{ij}$.
   }
-  \label{fig:adjacency-matrix}
+  \label{fig:directed-weighted}
 \end{figure*}
 
 The first distinction among graph types concerns the orientation of edges.
@@ -140,20 +157,6 @@ A scalar weight can be viewed as the special case $c = 1$ of the edge
 feature vectors introduced in Section~\ref{sec:formal-definitions}, that is, 
 a single number attached to each edge.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{directed-weighted}
-  \caption[A directed graph and a weighted graph.]{%
-    Left: a directed version of the graph of
-    Figure~\ref{fig:adjacency-matrix} and its adjacency matrix. Edge
-    orientations make $\mathbf{A}$ asymmetric: row $i$ lists the targets of
-    the edges leaving node $i$, and the in-degree and out-degree of one
-    highlighted node are annotated. Right: a weighted graph, with edge
-    thickness proportional to the weight $w_{ij}$.
-  }
-  \label{fig:directed-weighted}
-\end{figure}
-
 A \textit{self-loop} is an edge connecting a node to itself; in the
 adjacency matrix it appears as a nonzero diagonal entry, $A_{ii} \neq 0$. A
 \textit{multigraph} allows several parallel edges between the same pair of
@@ -172,8 +175,8 @@ Figure~\ref{fig:nonsimple-bipartite} illustrates the three cases.
   \includegraphics[width=\textwidth]{nonsimple-bipartite}
   \caption[Self-loops, a multigraph, and a bipartite graph.]{%
     Left: a graph with self-loops. Center: a multigraph with parallel
-    edges. Right: a bipartite graph, with its two subsets of nodes drawn as
-    distinct shapes.
+    edges. Right: a bipartite graph, with its two subsets of nodes drawn in
+    distinct colors.
   }
   \label{fig:nonsimple-bipartite}
 \end{figure*}
@@ -211,8 +214,9 @@ are undirected, simple, and homogeneous.
 
 The definitions so far describe a graph locally: nodes, their neighbors,
 and their attributes. Several properties that matter in the remainder of
-this work are instead global, arising from how edges chain together across
-the graph. A \textit{walk} is a sequence of nodes in which each consecutive
+this work are instead structural properties that extend beyond an individual node, 
+arising from how edges chain together across the graph. 
+A \textit{walk} is a sequence of nodes in which each consecutive
 pair is joined by an edge, and its \textit{length} is the number of edges
 traversed; a walk may revisit nodes and edges. A \textit{path} is a walk in
 which all nodes are distinct (Figure~\ref{fig:walks-paths}).
@@ -220,8 +224,8 @@ which all nodes are distinct (Figure~\ref{fig:walks-paths}).
 \begin{marginfigure}
   \includegraphics{walks-paths}
   \caption[A walk and a shortest path.]{%
-    A walk that revisits a node (top) and a shortest path between the same
-    endpoints (bottom), whose length is their geodesic distance.
+    A walk that revisits a node (left) and a shortest path between the same
+    endpoints (right), whose length is their geodesic distance.
   }
   \label{fig:walks-paths}
 \end{marginfigure}
@@ -254,21 +258,21 @@ into weak and strong variants according to whether edge orientations are
 respected; since this work treats undirected graphs, the refinement is not
 developed further.
 
-\begin{figure}
+\begin{marginfigure}
   \centering
-  \includegraphics[width=\textwidth]{connectivity}
+  \includegraphics{connectivity}
   \caption[A disconnected graph and its components.]{%
-    A disconnected graph with two connected components, one of which is a
-    single isolated node.
+    A disconnected graph with three connected components: one of five nodes,
+    one of three nodes, and a single isolated node.
   }
   \label{fig:connectivity}
-\end{figure}
+\end{marginfigure}
 
 Structure and attributes are often correlated. A graph exhibits
 \textit{homophily} when adjacent nodes tend to have similar attributes,
 and \textit{heterophily} when they tend to differ. The notion
 originates in the analysis of social networks, where similar individuals
-form ties at higher rates than dissimilar ones~\cite{mcpherson2001}, and it
+form ties at higher rates than dissimilar ones~\cite[1.5pc]{mcpherson2001}, and it
 extends to many of the graphs of Chapter~\ref{ch:applications}: in a
 citation network, a paper predominantly cites papers on related topics, so
 neighboring nodes tend to share a subject. Whether a graph is homophilous
@@ -294,15 +298,15 @@ Figure~\ref{fig:adjacency-matrix} are representations related in exactly
 this way. Two graphs drawn very differently may be isomorphic
 (Figure~\ref{fig:isomorphic-graphs}). Determining whether two graphs
 are isomorphic is a fundamental problem in graph theory.
-A classical heuristic, the Weisfeiler--Leman test, distinguishes
-most non-isomorphic graphs in practice~\cite{morris2023}, and it reappears later in this work
-in connection with the expressive power of graph neural networks.
+A classical heuristic, the Weisfeiler--Leman test, distinguishes many pairs 
+of non-isomorphic graphs in practice~\cite[-10.5pc]{morris2023}, and it reappears 
+later in this work in connection with the expressive power of GNNs.
 
-\begin{marginfigure}[-28pc]
+\begin{marginfigure}
   \includegraphics{isomorphic-graphs}
   \caption[Two isomorphic graphs.]{%
-    Two graphs that are drawn differently but are isomorphic: a bijection
-    between their node sets preserves all adjacencies.
+    The same graph drawn in two different ways (left and right). 
+    A bijection between their node sets preserves all adjacencies.
   }
   \label{fig:isomorphic-graphs}
 \end{marginfigure}
@@ -324,11 +328,11 @@ gives the number of walks of length $k$ between the two nodes,
 a count that is symmetric in $i$ and $j$ for the undirected graphs treated
 here. In particular, the entry is nonzero exactly when the two nodes are
 joined by some walk of that length, which ties the reachability notions of
-Section~\ref{sec:structural-properties} directly to matrix algebra and
-motivates the matrices introduced next.
+Section~\ref{sec:structural-properties} directly to matrix algebra.
 
-The \textit{degree matrix} $\mathbf{D} \in \mathbb{R}^{n \times n}$ is the
-diagonal matrix that holds the node degrees,
+Another matrix derived from the adjacency matrix is the 
+\textit{degree matrix} $\mathbf{D} \in \mathbb{R}^{n \times n}$, 
+the diagonal matrix that holds the node degrees,
 \begin{equation}
   \mathbf{D} = \operatorname{diag}\bigl(\deg(1), \ldots, \deg(n)\bigr),
   \label{eq:degree-matrix}
@@ -382,17 +386,17 @@ where the columns of $\mathbf{U} \in \mathbb{R}^{n \times n}$ form an
 orthonormal basis of eigenvectors and
 $\boldsymbol{\Lambda} = \operatorname{diag}(\lambda_1, \ldots, \lambda_n)$
 collects the corresponding eigenvalues. Symmetry guarantees that these
-eigenvalues are real, and positive semidefiniteness that they are
+eigenvalues are real, while positive semidefiniteness guarantees that they are
 nonnegative; ordered, they satisfy
 $0 = \lambda_1 \leq \cdots \leq \lambda_n$. The smallest eigenvalue is always
-zero, with the constant vector as an eigenvector, since the rows of
+zero, with the constant vector $\mathbf{1}_{n}$ as an eigenvector, since the rows of
 $\mathbf{L}$ sum to zero. More can be said: the multiplicity of the
 eigenvalue $0$ equals the number of connected components of the graph,
 linking the spectral description back to the connectivity of
 Section~\ref{sec:structural-properties}.
 
-For many purposes the Laplacian is rescaled by the node degrees. The
-\textit{symmetric normalized Laplacian} is
+The \textit{symmetric normalized Laplacian} is obtained by 
+rescaling the Laplacian with the node degrees,
 \begin{equation}
   \mathbf{L}_{\mathrm{sym}}
   = \mathbf{D}^{-1/2} \mathbf{L} \mathbf{D}^{-1/2}
@@ -401,12 +405,11 @@ For many purposes the Laplacian is rescaled by the node degrees. The
 \end{equation}
 where $\mathbf{I}$ is the identity matrix and $\mathbf{D}^{-1/2}$ is the
 diagonal matrix of inverse square-root
-degrees.\marginnote[-1pc]{For a node of degree zero the corresponding entry of
-$\mathbf{D}^{-1/2}$ is taken to be zero by convention.} It is again symmetric
+degrees.\marginnote[-0.5pc]{For a node of degree zero the corresponding entry of
+$\mathbf{D}^{-1/2}$ is taken to be zero.} It is again symmetric
 and positive semidefinite, so it shares the spectral structure just
 described, while its eigenvalues are confined to the interval
-$[0, 2]$~\cite{chung1997}. This normalized form is the variant used in the
-spectral developments of later chapters. Together, these properties make the
+$[0, 2]$~\cite{chung1997}. Together, these properties make the
 Laplacian a natural bridge between the structure of a graph and the linear
 algebra used to operate on it.
 

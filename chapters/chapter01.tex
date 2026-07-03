@@ -24,8 +24,8 @@ entities and the relations between them (Figure~\ref{fig:graph-structured-data})
 Data of this kind is naturally described by a \textit{graph}: a set of entities,
 called \textit{nodes}, together with a set of connections between them, called
 \textit{edges}. Both nodes and edges can carry their own data. For example, in a molecule,
-each node is an atom labeled with its element (carbon, hydrogen, oxygen, and so
-on) and each edge is a bond of a particular type (single, double, and so on); in
+each node is an atom labeled with its element (such as carbon, hydrogen, or oxygen),
+and each edge is a bond of a particular type (such as single, double, or triple); in
 a social network, the nodes are people and the edges are the relationships among
 them.
 
@@ -38,13 +38,13 @@ them.
     social network, whose nodes are people and whose edges are relationships;
     and a citation network, whose nodes are papers (colored by topic) and whose
     edges are citations between them. In each case the entities and their
-    connections, not a table, grid, or sequence, define the data.
+    connections, rather than a table, grid, or sequence, define the structure of the data.
   }
   \label{fig:graph-structured-data}
 \end{figure*}
 
-Rather than treating a domain as a collection of isolated data points, we
-describe it in terms of entities and the relationships among them, which means
+Rather than treating a domain as a collection of isolated data points, it can be
+described in terms of entities and the relationships among them, which means
 there is an underlying graph whose structure ties those entities together. Seen
 this way, the graph is not merely one possible encoding of a molecule or a
 social network but a faithful representation: it records exactly
@@ -94,16 +94,16 @@ Specifically, the work aims to:
         classification, the Graph Auto-Encoder (GAE) for link prediction, and
         the Graph Isomorphism Network (GIN) for graph classification;
   \item implement the three architectures on standard benchmark datasets
-        (Cora, Amazon Computers, and NCI1) using PyTorch Geometric, ensuring 
-         reproducibility, and evaluate each against a multilayer perceptron baseline 
-        that ignores the graph, examining the predictive benefit of explicitly
-        modeling the relational structure of the data;
+        (Cora, Amazon Computers, and NCI1) using PyTorch Geometric, ensure
+        reproducibility, evaluate each against a multilayer perceptron baseline,
+        and examine the predictive benefit of explicitly modeling the relational
+        structure of the data;
   \item examine the principal limitations of GNNs under this framework,
         including oversmoothing, oversquashing,
         heterophily, and the ceiling on their expressive power.
 \end{itemize}
 
-The graphs we consider are treated mainly as
+The graphs considered in this work are treated mainly as
 undirected, meaning their connections carry no direction, and
 simple, meaning that at most one connection joins any pair of nodes and
 that no node is connected to itself. This choice reflects simplicity rather than a limitation 
@@ -116,10 +116,9 @@ and a single kind of connection. This restriction is deliberate. The
 homogeneous setting is where the message-passing framework is most directly
 understood, and it is the foundation on which more elaborate models are built,
 including heterogeneous graphs, which carry several kinds of nodes and
-connections and require machinery beyond the scope of this work. Establishing
-the homogeneous case is a prerequisite for these extensions, which we
-leave as future research. The formal definitions of these graph types are given
-later in the document.
+connections and require machinery beyond the scope of this work.
+
+The concepts introduced here are defined formally throughout the remainder of the document.
 
 \section{Structure of the Document}
 \label{sec:document-structure}
@@ -129,7 +128,7 @@ work. The remainder of the document is organized as follows.
 
 The first chapters establish the foundations. Chapter~\ref{ch:applications}
 surveys the tasks that graph learning addresses at the node, edge, and graph
-level, together with the practical applications that motivate the rest of the work.
+level, together with practical applications that motivate the rest of the work.
 Chapter~\ref{ch:graph-theory} establishes the formal definitions and notation
 for graphs used throughout. Chapter~\ref{ch:nn-limitations} reviews the
 multilayer perceptron and shows why standard neural networks are ill-suited to
@@ -142,13 +141,12 @@ message-passing framework: the message, aggregation, and update functions, the
 receptive field that successive layers induce, the expressive power of the
 resulting models, and the architectural design space it enables.
 
-Chapter~\ref{ch:architectures} presents the three representative architectures
+Chapter~\ref{ch:architectures} presents three representative architectures
 within this framework: GCN for node classification, GAE for link prediction,
 and GIN for graph classification. Chapter~\ref{ch:implementations} turns to
 practice, providing reproducible implementations of these architectures on the
 Cora, Amazon Computers, and NCI1 benchmarks in PyTorch Geometric, comparing each
-against a baseline that ignores the graph, with the
-accompanying code available in a companion repository.
+against a multilayer perceptron, with the code available in a companion repository.
 
 Chapter~\ref{ch:limitations} examines the limitations of GNNs under the
 message-passing framework, and Chapter~\ref{ch:conclusions} synthesizes the
