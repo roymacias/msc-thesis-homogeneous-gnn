@@ -26,13 +26,12 @@ problem.
 
 Deep learning architectures differ primarily in the inductive biases their
 structure encodes. Three of them recur throughout 
-this work: the multilayer perceptron (MLP), the convolutional neural network (CNN), 
+this work: the multilayer perceptron, the convolutional neural network (CNN), 
 and the recurrent neural network (RNN). From this point onward, these architectures 
 are referred to exclusively by their acronyms, both in this chapter and 
 throughout the remainder of the document.
 
-The three differ precisely in the assumptions their structure imposes. The MLP,
-whose layers connect every input to every output, assumes that any
+The MLP, whose layers connect every input to every output, assumes that any
 input coordinate may interact with any other, that no particular structure 
 among the coordinates is presumed, and that examples are treated 
 independently. This is the appropriate bias when the input is an
@@ -50,15 +49,13 @@ reused at every position; a feature shifted across the grid produces the same
 feature shifted in the output. These assumptions make the CNN well suited to 
 natural images. The RNN, designed for sequences,
 encodes a different bias: it processes elements in order, applying the same
-transition at every step. This assumes that the data has a meaningful
-sequential order and that the rule relating one element to the next remains the same
-throughout the sequence. These assumptions are appropriate for text and time series.
+transition at every step. This assumes that the order of the
+elements is meaningful and that the same transformation can be reused across
+all positions in the sequence. These assumptions are appropriate for text and time series.
 
 The same principle appears in all three. Each architecture succeeds when its
 inductive bias matches the structure of the data, and the match is built into how
-the architecture is wired rather than learned from data. The MLP assumes no particular
-structure; the CNN assumes a grid with local, position-independent patterns; the
-RNN assumes an ordered sequence with a fixed step-to-step rule. The question
+the architecture is wired rather than learned from data. The question
 this chapter must answer follows immediately: what is the structure of a graph,
 and what inductive bias matches that structure.
 
@@ -72,7 +69,7 @@ the role of an atom is determined by the atoms bonded to it. The inductive bias
 appropriate to graphs is therefore the assumption that a node is characterized
 by its neighborhood --- that the information relevant to a node resides in the
 nodes adjacent to it and in the structure connecting them. This assumption is
-the \textit{relational inductive bias}~\cite[-11.5pc]{battaglia2018}.
+the \textit{relational inductive bias}~\cite[-7.5pc]{battaglia2018}.
 
 The relational inductive bias is the graph counterpart of the locality that the
 CNN encodes, and the comparison is exact in one respect and instructive in its
@@ -151,7 +148,7 @@ according to this relabeling. A permutation matrix is orthogonal,
   \label{eq:permutation-orthogonal}
 \end{equation}
 which states that the reordering is invertible and that its inverse is its
-transpose: the rearrangement can always be undone.
+transpose.
 
 Applying the reordering $\mathbf{P}$ to a graph acts on both of its matrices.
 The feature matrix becomes $\mathbf{P}\mathbf{X}$, which moves each node's
@@ -161,7 +158,7 @@ rows and $\mathbf{P}^\top$ its columns, so that the entry recording an edge
 between two nodes follows them to their new positions. The pair
 $(\mathbf{P}\mathbf{A}\mathbf{P}^\top,\, \mathbf{P}\mathbf{X})$ is the same graph
 as $(\mathbf{A}, \mathbf{X})$ under a different indexing; no edge has been added
-or removed, and no feature has changed, only the node ordering.
+or removed, and no feature has changed.
 
 A function defined on graphs must respect this fact, and which condition it must
 satisfy depends on the level of the task. For a task whose output describes the
@@ -185,12 +182,12 @@ In this case, $f$ must be \textit{permutation equivariant}:
 \end{equation}
 Reordering the nodes reorders the per-node outputs in exactly the same way: the
 prediction for a given node is the same prediction, carried to that node's new
-position~\cite[1pc]{hamilton2020}. Figure~\ref{fig:permutation-equivariance}
+position~\cite[5.7pc]{hamilton2020}. Figure~\ref{fig:permutation-equivariance}
 illustrates the two conditions on a single graph drawn under two orderings.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{permutation-equivariance}
+  \includegraphics{permutation-equivariance}
   \caption[Permutation invariance and equivariance on a graph.]{%
     A single graph shown under two node orderings related by a permutation
     $\mathbf{P}$. Left: the original indexing, with a per-node output attached
@@ -202,8 +199,8 @@ illustrates the two conditions on a single graph drawn under two orderings.
   \label{fig:permutation-equivariance}
 \end{figure*}
 
-These two conditions, together with the relational inductive bias of
-Section~\ref{sec:relational-bias}, determine what a layer operating on graphs
+These two conditions, together with the relational inductive bias, 
+determine what a layer operating on graphs
 must be. The relational inductive bias fixes where each node's information comes
 from. Permutation equivariance fixes how the layer must treat
 the indexing. This is the design the next chapter develops: the message-passing 
