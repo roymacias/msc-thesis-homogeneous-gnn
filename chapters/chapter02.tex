@@ -2,25 +2,25 @@
 \label{ch:applications}
 \minitoc
 
-Once a domain has been represented as graph-structured data, a natural 
-question arises: what machine learning tasks can be defined on a graph? 
-A graph can be viewed at three levels of granularity: its individual nodes, its edges, 
-and the graph as a whole. Each level gives rise to a family of prediction tasks: 
-predicting a property of each node, predicting the existence or type of a connection 
+Once a domain has been represented as graph-structured data, a natural
+question arises: what machine learning tasks can be defined on a graph?
+A graph can be viewed at three levels: its nodes, its edges, and the graph
+as a whole. Each gives rise to a family of prediction tasks: predicting a
+property of each node, predicting the existence or type of a connection
 between pairs of nodes, or predicting a property of the entire graph. These are known,
 respectively, as \textit{node-level}, \textit{edge-level}, and
-\textit{graph-level tasks} (Figure~\ref{fig:graph-learning-tasks}), and they structure the architectures and
-implementations developed in the rest of this work.
+\textit{graph-level tasks} (Figure~\ref{fig:graph-learning-tasks}), and they structure the 
+architectures and implementations developed in this work.
 
-\begin{figure}
+\begin{figure}[!h]
   \centering
   \includegraphics[width=\textwidth]{graph-learning-tasks}
   \caption[The three levels of graph learning tasks.]{%
-    The three levels at which a prediction can be made on a single graph. A
-    node-level task predicts a property of an individual node (highlighted); an
+    The three standard levels at which predictions are commonly made on a graph. 
+    A node-level task predicts a property of an individual node (highlighted); an
     edge-level task predicts a property of a connection between two nodes, such
     as whether it exists (dashed); and a graph-level task predicts a single
-    property of the entire graph (framed). The same object supports all three.
+    property of the entire graph (framed). 
   }
   \label{fig:graph-learning-tasks}
 \end{figure}
@@ -49,16 +49,14 @@ the goal is to infer the topic of each paper (Figure~\ref{fig:node-level}). A pa
 text is informative, but so is its neighborhood: papers tend to cite others on related subjects,
 so the topics of a paper's neighbors are strong evidence for its own. Node
 classification exploits exactly this, combining what a node contains with what
-surrounds it. The same pattern appears whenever entities in a network must be
-categorized.
+surrounds it. 
 
 \begin{figure*}[t]
   \includegraphics[width=\textwidth]{node-level-tasks}
   \caption[Node-level tasks.]{%
     Left: the node classification task in the abstract. Some nodes carry a known
-    label (shown by color) while others are unknown (marked with a question
-    mark); the model predicts a label for every node from its attributes and the
-    surrounding structure. Right: a concrete instance as a citation network,
+    label (shown by color) while others are unknown (marked with a question mark).
+    Right: a concrete instance as a citation network,
     where each node is a scientific paper and the predicted label is its topic.
   }
   \label{fig:node-level}
@@ -69,9 +67,9 @@ can be constructed where nodes represent amino acid residues and edges connect
 residues that are close in space. One may predict a discrete property of each
 residue, such as its functional role, or a continuous property, such as its position
 in three dimensions, a formulation that underlies recent advances in protein
-structure prediction~\cite[-9pc]{jumper2021}. A node-level task can therefore be
-classification or regression, depending on whether the per-node target is
-categorical or numerical.
+structure prediction~\cite[-16pc]{jumper2021}. 
+
+\newpage
 
 The same framing extends to economic settings. In a financial network whose
 nodes are accounts and whose edges are transactions between them, fraud
@@ -81,6 +79,20 @@ surrounding network of connections than in any single account considered in isol
 
 \section{Edge-Level Tasks}
 \label{sec:edge-level}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{edge-level-tasks}
+  \caption[Edge-level tasks.]{%
+    Left: the link prediction task in the abstract. Solid edges are observed
+    connections; dashed edges marked with a question mark are candidate
+    connections whose existence the model must predict. Right: a concrete
+    instance as a recommendation setting, where the two kinds of entity (users,
+    drawn as circles, and products, drawn as squares) are joined by observed
+    interactions, and the task is to predict further user--product links.
+  }
+  \label{fig:edge-level}
+\end{figure*}
 
 An \textit{edge-level task} focuses on relationships between entities. 
 The central example is \textit{link prediction}: given the edges already present 
@@ -93,51 +105,24 @@ users and products as distinct node types, with edges representing interactions
 such as purchases or ratings; link prediction then becomes the recommendation 
 problem itself, anticipating which products a user is likely to prefer next.
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{edge-level-tasks}
-  \caption[Edge-level tasks.]{%
-    Left: the link prediction task in the abstract. Solid edges are observed
-    connections; dashed edges marked with a question mark are candidate
-    connections whose existence the model must predict. Right: a concrete
-    instance as a recommendation setting, where the two kinds of entity (users,
-    drawn as squares, and products, drawn as circles) are joined by observed
-    interactions, and the task is to predict further user--product links.
-  }
-  \label{fig:edge-level}
-\end{figure*}
-
 What makes the graph formulation effective is that it learns from the relational
 structure rather than treating each entity in isolation. A recommender system that treats
 products only by their individual attributes, ignoring the network of interactions
 around them, discards precisely the signal that reveals which items behave
-similarly; methods that propagate information along the graph structure consistently
-outperform such approaches, a principle that underlies graph-based recommender systems
-deployed at web scale~\cite[-6pc]{ying2018}.
+similarly; methods that propagate information along the graph structure can outperform 
+approaches that rely only on individual attributes, a principle exploited by 
+graph-based recommender systems deployed at web scale~\cite[-7.5pc]{ying2018}.
 
 Link prediction extends well beyond commerce. Given a pair of drugs, one may
 predict whether taking them together produces an adverse interaction, by placing
 both within a larger biological network and asking whether a particular kind of
-connection should join them~\cite[-2pc]{zitnik2018}. The same formulation is also used to
+connection should join them~\cite[4pc]{zitnik2018}. The same formulation is also used to
 complete \textit{knowledge graphs}, large networks of facts in which entities are connected
 by relations: many true relations are simply unobserved, and link
 prediction proposes the most plausible ones.
 
 \section{Graph-Level Tasks}
 \label{sec:graph-level}
-
-A \textit{graph-level task} treats an entire graph as a single example and
-predicts a property of the whole. The representative task is \textit{graph
-classification}: assigning a label to a complete graph
-(Figure~\ref{fig:graph-level}). Here the data is not one large network but a
-collection of many separate graphs, each with its own label, and the model must
-summarize the structure and attributes of an entire graph into a single
-prediction. Molecular property prediction is the canonical example. A molecule
-is naturally a graph, with atoms as nodes and chemical bonds as edges, and many
-prediction tasks about it are graph-level: whether a compound is toxic, or whether it is
-active against a given biological target. Because molecules vary in size and
-structure, this is exactly the regime that calls for a model able to handle graphs
-that vary in this way and return one prediction per graph.
 
 \begin{figure*}[t]
   \centering
@@ -153,12 +138,25 @@ that vary in this way and return one prediction per graph.
   \label{fig:graph-level}
 \end{figure*}
 
+A \textit{graph-level task} treats an entire graph as a single example and
+predicts a property of the whole. The representative task is \textit{graph
+classification}: assigning a label to a complete graph
+(Figure~\ref{fig:graph-level}). Here the data is not one large network but a
+collection of many separate graphs, each with its own label, and the model must
+summarize the structure and attributes of a graph into a single
+prediction. Molecular property prediction is the canonical example. A molecule
+is naturally a graph, with atoms as nodes and chemical bonds as edges, and
+prediction tasks about it are graph-level: whether a compound is toxic, or whether it is
+active against a given biological target. Because molecules vary in size and
+structure, this regime calls for a model able to handle graphs
+that vary in this way and return one prediction per graph.
+
 This capability feeds directly into drug discovery, where large libraries of
 candidate compounds are screened to prioritize the few worth synthesizing and
 testing in the laboratory. A graph-level model trained to predict antibacterial
 activity, for instance, identified halicin, a compound structurally unlike
 conventional antibiotics and effective against resistant
-bacteria~\cite[-3pc]{stokes2020}. The same idea applies in materials science, where the
+bacteria~\cite[-4.5pc]{stokes2020}. The same idea applies in materials science, where the
 atomic structure of a material is represented as a graph and a graph-level model
 predicts a physical property such as its stability or its mechanical strength.
 
