@@ -2,18 +2,12 @@
 \label{ch:limitations}
 \minitoc
 
-The message-passing framework has been presented
-in the setting where it succeeds. This chapter turns to its limits. 
-The limitations gathered here are not defects of particular
- architectures but consequences of the framework's defining operation: 
-representing a node by repeatedly aggregating information 
-from its neighborhood.
-
-Two independent kinds of limit are distinguished. The first concerns the
-mechanism of propagation --- what happens to the representations as
-messages are passed, and when the assumption built into the aggregation ceases to
-hold. The second concerns expressive power --- what the framework can
-distinguish at the graph level at all, independent of how well it is trained.
+The message-passing framework has been presented in the setting where it
+succeeds. This chapter turns to its limits, and two kinds of limit are distinguished. 
+The first concerns propagation --- what happens to representations as messages are 
+passed and when the homophily assumption behind aggregation no longer holds. 
+The second concerns expressive power --- what the 
+framework can distinguish at the graph level, independent of training.
 
 \section{Pathologies of Neighborhood Propagation}
 \label{sec:propagation-pathologies}
@@ -21,20 +15,20 @@ distinguish at the graph level at all, independent of how well it is trained.
 This section examines three ways in which neighborhood propagation can degrade the
 representations it produces: \textit{oversmoothing}, the collapse of
 representations under depth; \textit{oversquashing}, the distortion of information
-drawn from far away; and the failure of the framework on \textit{heterophilous}
-graphs, where the assumption underlying aggregation does not hold.
+drawn from far away; and \textit{heterophily}, where neighboring nodes tend to
+be dissimilar rather than similar.
 
 \subsection{Oversmoothing}
 \label{sec:oversmoothing}
 
-A GCN layer smooths, bringing each node's representation toward the average of its
-neighbors (Section~\ref{sec:gcn}). A few layers can align the representations with the
-labels on a homophilous graph; the difficulty is that smoothing does not stop at a
-useful point. Applied repeatedly, the operation that makes adjacent nodes more
-similar makes all nodes similar: as depth grows, the representations within
-each connected component converge toward a common vector
-(Figure~\ref{fig:oversmoothing}). This is \textit{oversmoothing}, identified as a
-fundamental obstacle to deep message-passing networks~\cite[-6pc]{li2018}.
+A GCN layer smooths, reducing variation across edges and making representations 
+of neighboring nodes more similar (Section~\ref{sec:gcn}). A few layers may be sufficient 
+to align the representations with the labels on a homophilous graph; the difficulty is that 
+smoothing does not stop at a useful point. Applied repeatedly, the operation that makes 
+adjacent nodes more similar makes all nodes similar: as depth grows, the representations 
+within each connected component converge toward a common vector. 
+This is \textit{oversmoothing}, first identified for the GCN 
+as a consequence of its Laplacian smoothing~\cite[11.5pc]{li2018}.
 
 \begin{figure}
   \centering
@@ -49,24 +43,22 @@ fundamental obstacle to deep message-passing networks~\cite[-6pc]{li2018}.
 \end{figure}
 
 This places a ceiling on useful depth that is in direct tension with the receptive
-field of Section~\ref{sec:receptive-field}: depth is the means by which a node sees
-further, yet the same depth that widens the receptive field degrades the
-representations. The useful depth of a network is therefore a compromise between
-the two. Architectural designs that relieve this tension are revisited
-in Chapter~\ref{ch:conclusions}.
+field of Section~\ref{sec:receptive-field}. The useful depth of a network is therefore 
+a compromise between the receptive field and oversmoothing. 
+Architectural designs that relieve this tension are revisited in Chapter~\ref{ch:conclusions}.
 
 \subsection{Oversquashing}
 \label{sec:oversquashing}
 
-The receptive field grows with depth, which seems to promise that a deep enough
+The receptive field grows with depth, suggesting that a deep enough
 network lets any node draw on any other. However, the number of
 nodes within $k$ hops typically grows exponentially with $k$, yet the
 representation summarizing this region is a vector of fixed dimension, the same
 size whether it gathers a handful of nodes or thousands. Information from an
 exponentially growing region is compressed into a fixed-size representation,
-making information loss unavoidable (Figure~\ref{fig:oversquashing}).
+making information loss unavoidable.
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics{oversquashing}
   \caption[A growing receptive field squashed into a fixed-size vector.]{%
@@ -74,14 +66,14 @@ making information loss unavoidable (Figure~\ref{fig:oversquashing}).
     additional hop multiplies the number of nodes that must be summarized. The
     representation gathering this region is a vector of fixed size, independent of
     how many nodes feed into it, so information from the wider neighborhood is
-    compressed and the contribution of any single distant node is diluted.
+    compressed, reducing the contribution of any single distant node.
   }
   \label{fig:oversquashing}
 \end{figure}
 
-This is \textit{oversquashing}: the distortion that results when information from a
+This is \textit{oversquashing} (Figure~\ref{fig:oversquashing}): the distortion that results when information from a
 node's wider neighborhood is squeezed through the fixed-size representations of the
-intermediate nodes~\cite{alon2021}. Its consequence is that message-passing
+intermediate nodes~\cite[-4.25pc]{alon2021}. Its consequence is that message-passing
 networks struggle on tasks depending on long-range interaction. To reach a distant
 target, a signal must pass through every intermediate representation, and at each
 step it is aggregated with everything else in that node's neighborhood.
@@ -92,16 +84,15 @@ Oversquashing and oversmoothing both worsen with depth but are distinct failures
 Oversmoothing is a loss of distinction \emph{between nodes}: their representations
 converge. Oversquashing is a loss of information \emph{from distance}: one node's
 representation cannot faithfully hold its large receptive field. Together they
-bound how deep a network can usefully be made, and therefore how far across the
-graph it can see.
+bound how deep a network can usefully be made.
 
 \subsection{Heterophily}
 \label{sec:heterophily}
 
 Oversmoothing and oversquashing are costs of the mechanism that arise whatever the
 data. Heterophily is instead a failure of fit between mechanism and data.
-Aggregation rests on the assumption that
-adjacent nodes are similar --- the \textit{homophily} of
+A GCN layer rests on the assumption that
+adjacent nodes are similar --- the homophily of
 Section~\ref{sec:structural-properties}.
 When it holds, aggregating a neighborhood
 reinforces what a node indicates; when it fails, the same aggregation works against
@@ -124,7 +115,7 @@ zero, a strongly heterophilous one, in which edges predominantly join nodes of
 different classes.
 
 On a heterophilous graph, the aggregation misleads: a node's neighbors mostly
-belong to other classes, so averaging their representations pulls the node toward
+belong to other classes, so smoothing their representations pulls the node toward
 classes it does not belong to, blurring the distinction the task requires. 
 The framework does not fail to use the graph;
 it uses the graph through an assumption the graph does not satisfy. Aggregation
@@ -143,14 +134,14 @@ This section makes the limit concrete by exhibiting what it excludes.
 What the ceiling excludes is a pair of non-isomorphic graphs that \mbox{1-WL} ---
 and therefore every message-passing network --- colors identically. The simplest
 examples arise among pairs of \textit{regular} graphs, in which every node has the
-same degree (Figure~\ref{fig:wl-indistinguishable}). All nodes begin with the same
+same degree. All nodes begin with the same
 color; and whenever every node shares a color, each one has the same number of
 identically colored neighbors, so the refinement assigns them all the same new color.
 The condition therefore reproduces itself at every round, and the test never
 separates the nodes, so two such graphs receive the same final coloring. Yet regular
 graphs of the same degree need not be isomorphic, differing in structural properties
 the count of same-colored neighbors never exposes, such as whether they form one
-connected cycle or two disjoint shorter ones.
+connected cycle or two disjoint shorter ones (Figure~\ref{fig:wl-indistinguishable}).
 
 \begin{figure}
   \centering
@@ -168,15 +159,6 @@ This is a genuine ceiling, not a shortcoming of present architectures, because i
 follows from the locality of the computation: a network that only ever sees
 aggregated neighborhoods cannot distinguish nodes whose neighborhoods are
 themselves indistinguishable. Surpassing it means
-changing what the computation may see --- for instance, refining colorings over
-tuples of nodes rather than single nodes, the higher-order generalization that
-extends the \mbox{1-WL} correspondence to a hierarchy of tests indexed by the number
-of nodes considered jointly~\cite{morris2019}. Such methods
+changing what the computation may see. Such methods
 fall outside the present framework; they are taken up as future work
 in Chapter~\ref{ch:conclusions}.
-
-The limitations of this chapter share a single origin. The locality that lets a network
-generalize across graphs of different sizes is the same locality that hides
-structure beyond the neighborhood and sets the \mbox{1-WL} ceiling.
-The framework's limitations are its mechanism seen from the other side, which is
-why a model of these networks is incomplete without them.
