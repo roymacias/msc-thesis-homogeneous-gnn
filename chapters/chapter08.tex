@@ -1,0 +1,674 @@
+\chapter{Implementations and Experimental Evaluation}
+\label{ch:implementations}
+\minitoc
+
+The architectures of Chapter~\ref{ch:architectures} are now brought to
+experimental evaluation. Each is implemented on a standard benchmark
+and evaluated against an MLP baseline that ignores the structure of the graph,
+so that whatever performance separates them is attributable to the relational
+inductive bias of Section~\ref{sec:relational-bias}, under which the examples
+are related rather than independent. This comparison directly addresses the
+objective stated in Section~\ref{sec:objectives-scope}. The chapter first
+establishes the methodology common to all three implementations and then
+presents each in turn: GCN on the Cora benchmark dataset for node classification,
+GAE on Amazon Computers for link prediction, and GIN on NCI1 for graph classification.
+
+\section{Experimental Methodology}
+\label{sec:methodology}
+
+All three implementations are built in PyTorch
+Geometric~\cite[-2.1pc]{fey2019}, a library that provides graph data structures,
+benchmark loaders, and message-passing layers, and all three follow one
+experimental pipeline. A benchmark dataset is loaded and prepared;
+the GNN and the MLP are instantiated; both are trained under identical optimization
+settings, with a validation set monitored to select the best model; and the
+selected models are evaluated once on a held-out test set.
+
+The datasets are established benchmarks available through PyTorch Geometric.
+For this reason, no exploratory analysis or additional cleaning is performed,
+and preparation is limited to the transformations and splits described in the
+corresponding section.
+
+No hyperparameter search is performed. Instead, the architectures and optimization
+settings are selected to provide stable learning, seeking configurations that avoid
+underfitting and overfitting as far as each architecture permits. The goal is to ensure
+that neither the GNNs nor the MLPs are disadvantaged by poor configuration,
+so that the comparison isolates the effect of incorporating graph structure
+through message passing.
+
+Reproducibility is enforced through controlled execution conditions.
+All experiments are executed on CPU, avoiding hardware-dependent
+nondeterminism introduced by parallel GPU operations. Under this setting,
+every stochastic component of a run --- the initialization of parameters,
+the sampling of splits, the drawing of negative examples, and other
+operations that consume randomness --- is governed by a single seed,
+so that a run is reproducible once its seed is fixed.
+Each experiment is repeated over a fixed set of ten seeds. Reporting
+performance over multiple seeds provides a more robust assessment
+than a single run by accounting for the variability induced
+by stochastic training. For each model, the evaluation metric is summarized by
+its median, mean, and standard deviation across the ten runs. The figures show
+the run corresponding to the median performance, ensuring that every figure
+corresponds to an actual run rather than to an aggregate that
+does not correspond to any individual run.
+
+The companion repository~\cite{macias2026} contains the implementation required
+to reproduce this chapter: the configurations, the dataset loading
+and preparation, the training and evaluation pipeline, the scripts that generate every
+figure and compute every metric, and the exact dependency manifest. 
+
+\section{Node Classification with GCN}
+\label{sec:gcn-implementation}
+
+The first implementation addresses node classification. GCN
+(Section~\ref{sec:gcn}) and an MLP are trained to predict the topic of
+each publication in the Cora citation network.
+
+\subsection{The Cora Dataset}
+\label{sec:cora-dataset}
+
+Cora is a citation network of machine-learning publications~\cite{sen2008}.
+Nodes represent papers, each edge represents an undirected citation
+between two papers, each node carries a binary bag-of-words vector
+indicating which words from a fixed dictionary occur in the paper, and each node
+is labeled with one of seven topics. Although citations are inherently directed,
+the benchmark represents them as undirected edges to allow the information
+to be propagated in both directions during message passing.
+Table~\ref{tab:cora-stats} summarizes the dataset.
+
+\begin{table}
+  \caption[Cora dataset.]{%
+    Summary of the Cora benchmark dataset.
+  }
+  \label{tab:cora-stats}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Property & Value \\
+      \midrule
+      Nodes                        & 2{,}708 \\
+      Edges                        & 5{,}278 \\
+      Average degree               & 3.9 \\
+      Node feature dimension       & 1{,}433 \\
+      Classes                      & 7 \\
+      Split (train/val/test nodes) & 140 / 500 / 1{,}000 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The dataset is provided as a benchmark through PyTorch Geometric, so no
+additional cleaning is performed. The only transformation applied to the node
+features is a row-wise L1 normalization.
+
+The predefined data split is adopted without modification. The dataset ships with
+a partition of 140 training nodes (balanced with twenty per class), 500 validation nodes,
+and 1{,}000 test nodes. The training partition therefore contains only about five percent
+of the nodes in the graph. The remaining 1{,}068 nodes belong to none of the three
+partitions but remain part of the graph, contributing structural information during
+message passing without belonging to any supervised split.
+This corresponds to the transductive setting described in
+Section~\ref{sec:transductive-inductive}, where training has access to the
+full graph structure and all node features, while supervision is provided
+only through the labeled training nodes.
+
+\subsection{Model and Training}
+\label{sec:gcn-training}
+
+Table~\ref{tab:gcn-model} specifies both models. The GCN stacks two
+layers of~\eqref{eq:gcn-matrix}, the first serving as the hidden layer and the second
+as the output layer, giving every node a two-hop receptive field
+(Section~\ref{sec:receptive-field}). The MLP consists of a single hidden layer of
+width 32 followed by the output layer, resulting in approximately twice as many
+trainable parameters as the GCN --- wider MLP configurations
+overfit the 140 training labels more severely.
+
+\begin{table}
+  \caption[Model configuration, node classification.]{%
+    Model configuration for node classification on Cora.
+  }
+  \label{tab:gcn-model}
+  \begin{center}
+    \small
+    \begin{tabular}{lcc}
+      \toprule
+      Component            & GCN               & MLP \\
+      \midrule
+      Layers               & 2 GCN layers & 2 MLP layers \\
+      Hidden dimension     & 16                & 32 \\
+      Hidden activation        &\multicolumn{2}{c}{ReLU} \\      
+      Output dimension       &\multicolumn{2}{c}{7} \\
+      Trainable parameters & 23{,}063          & 46{,}119 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+Table~\ref{tab:gcn-training} specifies the optimization settings, identical for
+both models. Both produce class probabilities through a softmax transformation
+and are trained using cross-entropy loss and the same
+regularization, so the comparison isolates the effect of incorporating graph
+structure through message passing. Dropout~\cite[-2pc]{srivastava2014} and
+L2 regularization (weight decay) are used for regularization.
+Training is performed in full-batch mode, where the entire graph is processed
+at every optimization step, as permitted by the transductive setting.
+
+\begin{table}
+  \caption[Training configuration, node classification.]{%
+    Training configuration for node classification on Cora, identical for
+    both models.
+  }
+  \label{tab:gcn-training}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Parameter     & Value \\
+      \midrule
+      Loss             & Cross-entropy \\
+      Optimizer     & Adam \\
+      Learning rate & 0.01 \\
+      Weight decay  & $5 \times 10^{-4}$ \\
+      Dropout       & 0.5 \\
+      Epochs        & 200 \\
+      Batch size    & full graph \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The validation set is evaluated at every epoch, and the parameters achieving
+the highest validation accuracy are retained. The results reported in the
+next subsection are obtained from the selected checkpoint evaluated on the test nodes.
+
+\subsection{Results}
+\label{sec:gcn-results}
+
+Figure~\ref{fig:node-loss} shows the loss over training. Both models reduce
+the training loss, but the MLP reduces it faster and to a lower value.
+On the validation set the two diverge. The GCN validation loss continues its
+decreasing trend throughout training, whereas the MLP validation
+loss settles early while its training loss continues to decrease,
+suggesting overfitting. By incorporating information from neighboring nodes
+through message passing, the GCN exhibits substantially less separation
+between training and validation loss.
+
+Performance is measured by accuracy over the held-out nodes. Accuracy provides
+a global measure of classification effectiveness, while the learned embeddings
+are examined separately to assess whether the representations organize nodes
+according to their classes. Table~\ref{tab:gcn-results} reports the results.
+
+\newpage
+
+\begin{figure}
+  \centering
+  \includegraphics{node-loss}
+  \caption[Training and validation loss on Cora.]{%
+    Training (left) and validation (right) loss per epoch on Cora for GCN and
+    the MLP. Each panel is scaled to its own data.
+  }
+  \label{fig:node-loss}
+\end{figure}
+
+\begin{table}
+  \caption[GCN against the MLP on Cora.]{%
+    Test accuracy on Cora, over ten seeds.
+  }
+  \label{tab:gcn-results}
+  \begin{center}
+    \small
+    \begin{tabular}{lccc}
+      \toprule
+      Model & Median & Mean & Std \\
+      \midrule
+      GCN & 0.8170 & 0.8154 & 0.0061 \\
+      MLP & 0.5920 & 0.5876 & 0.0119 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The GCN reaches a median accuracy of 0.8170, compared with 0.5920 for
+the MLP, an improvement of approximately 22.5 percentage points despite
+using about half as many trainable parameters. The MLP relies exclusively on
+the node features, whereas the GCN enriches those representations through
+message passing. This result is consistent with the smoothing mechanism of
+GCNs described in Section~\ref{sec:gcn}, which is effective when
+neighboring nodes tend to share the same class.
+
+Figure~\ref{fig:node-embeddings} illustrates this difference. It projects the learned
+test-node representations to two dimensions using UMAP~\cite{mcinnes2018}.
+The GCN representations exhibit a clearer clustering by class, whereas the MLP
+representations remain more diffuse with greater overlap between classes.
+Because UMAP preserves local neighborhoods rather than global distances or
+cluster sizes, only the local clustering within each panel is informative.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=3.2in]{node-embeddings}
+  \caption[Learned representations on Cora.]{%
+    Two-dimensional UMAP projection of the test-node representations learned
+    on Cora by GCN (left) and by the MLP (right), colored by class.
+    Each panel is an independent projection; only the grouping within a panel
+    is informative.
+  }
+  \label{fig:node-embeddings}
+\end{figure}
+
+\FloatBarrier
+
+\section{Link Prediction with GAE}
+\label{sec:gae-implementation}
+
+The second implementation addresses link prediction. GAE
+(Section~\ref{sec:gae}) and an MLP-based encoder with the same decoder
+are trained to predict co-purchase links on the Amazon Computers graph.
+
+\subsection{The Amazon Computers Dataset}
+\label{sec:amazon-dataset}
+
+Amazon Computers is a segment of the Amazon co-purchase
+graph~\cite{shchur2018}. Each node is a product, each edge is undirected
+and connects two products frequently bought together, and each node carries
+a bag-of-words vector extracted from product reviews. The task uses no node labels: the
+supervision is the edge set itself. Table~\ref{tab:amazon-stats} summarizes
+the dataset.
+
+\begin{table}
+  \caption[Amazon Computers dataset.]{%
+    Summary of the Amazon Computers benchmark dataset.
+  }
+  \label{tab:amazon-stats}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Property & Value \\
+      \midrule
+      Nodes                        & 13{,}752 \\
+      Edges                        & 245{,}861 \\
+      Average degree               & 35.76 \\
+      Node feature dimension       & 767 \\
+      Split (train/val/test edges) & 85\% / 5\% / 10\% \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The dataset is provided as a benchmark through PyTorch Geometric, so no
+additional cleaning is performed. The only transformation applied to the node
+features is a row-wise L1 normalization.
+
+The split is defined over edges. A seeded sampling assigns 85\% of the edges
+to training, 5\% to validation, and 10\% to test; validation and test edges
+are removed from the graph on which the encoder operates, so message passing
+runs on the training structure only. Both the validation and test sets are augmented
+with an equal number of sampled non-edges, the negative examples introduced in
+Section~\ref{sec:encoder-decoder}, so that evaluation is a binary
+classification over held-out pairs, with the non-edges drawn to be genuine ---
+absent from the full graph and shared by no two evaluation sets. At this scale,
+the evaluation sets contain tens of thousands of pairs each, which keeps the
+variability of the resulting estimates low. The training setting remains transductive:
+all nodes and their features are visible throughout, while only the evaluation edges
+are held out from the training graph.
+
+\subsection{Model and Training}
+\label{sec:gae-training}
+
+Table~\ref{tab:gae-model} specifies both models. The GAE encoder stacks two
+GCN layers, one as the hidden layer and the other as the output embedding layer;
+the MLP encoder consists of two hidden layers applied to each node
+independently, followed by an output embedding layer, resulting in about twice
+as many parameters as the GAE encoder. Both feed the same inner product
+decoder~\eqref{eq:inner-product-decoder}, which has no parameters of its own,
+so the encoder is what differs between the two models.
+
+\begin{table}
+  \caption[Model configuration, link prediction.]{%
+    Model configuration for link prediction on Amazon Computers.
+  }
+  \label{tab:gae-model}
+  \begin{center}
+    \small
+    \begin{tabular}{lcc}
+      \toprule
+      Component            & GAE          & MLP \\
+      \midrule
+      Encoder              & 2 GCN layers & 3 MLP layers \\
+      Hidden dimensions    & 64           & 128 / 64 \\
+      Hidden activation       &\multicolumn{2}{c}{ReLU} \\
+      Embedding dimension  &\multicolumn{2}{c}{32} \\
+      Decoder              & \multicolumn{2}{c}{inner product} \\
+      Trainable parameters   & 51{,}232     & 108{,}640 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+Table~\ref{tab:gae-training} specifies the optimization, identical for both
+models. Negative examples are resampled at every epoch, with one non-edge
+sampled per training edge. The loss is the binary cross-entropy between the
+reconstructed probabilities~\eqref{eq:gae-reconstruction} and the observed
+adjacency over the sampled pairs, with no regularization.
+The choice of 400 epochs is deliberate: at that point both models are
+still improving slightly without clear signs of overfitting, as the loss curves
+in the next subsection confirm.
+
+\begin{table}
+  \caption[Training configuration, link prediction.]{%
+    Training configuration for link prediction on Amazon Computers, identical
+    for both models.
+  }
+  \label{tab:gae-training}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Parameter         & Value \\
+      \midrule
+      Loss             & Binary cross-entropy \\
+      Optimizer         & Adam \\
+      Learning rate     & 0.01 \\
+      Weight decay      & 0 \\
+      Dropout           & 0 \\
+      Epochs            & 400 \\
+      Batch size        & full graph \\
+      Negative sampling & 1:1, resampled per epoch \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The validation set is evaluated at every epoch, and the parameters achieving
+the highest validation AUC are retained. The results reported in the
+next subsection are obtained from the selected checkpoint evaluated on the test pairs.
+
+\subsection{Results}
+\label{sec:gae-results}
+
+Figure~\ref{fig:link-loss} shows the reconstruction loss over the 400 epochs
+of training. Both models improve over training, on both the training and
+validation sets, and neither shows signs of overfitting: the validation loss
+follows the same decreasing trend as the training loss until the last epoch.
+The GAE loss remains below the MLP loss from early in training and stays there.
+Among the three tasks, this is the one in which the MLP is a genuine competitor:
+it learns the problem, so the comparison is between two models that both
+perform effectively.
+
+\begin{figure}
+  \centering
+  \includegraphics{link-loss}
+  \caption[Training and validation loss on Amazon Computers.]{%
+    Training (left) and validation (right) loss per epoch on Amazon Computers
+    for GAE and the MLP-based encoder. Each panel is scaled to its own data.
+  }
+  \label{fig:link-loss}
+\end{figure}
+
+Two threshold-free metrics summarize performance over the held-out pairs.
+The AUC is the probability that a random true edge is scored above a random
+non-edge; the average precision (AP) summarizes the precision--recall curve,
+giving more importance to retrieving true edges among the highest-scored
+pairs. Table~\ref{tab:gae-results} reports them.
+
+\begin{table}
+  \caption[GAE against the MLP-based encoder on Amazon Computers.]{%
+    Link prediction on Amazon Computers, over ten seeds.
+  }
+  \label{tab:gae-results}
+  \begin{center}
+    \small
+    \begin{tabular}{llccc}
+      \toprule
+      Metric & Model & Median & Mean & Std \\
+      \midrule
+      AUC & GAE      & 0.9389 & 0.9352 & 0.0077 \\
+          & MLP & 0.8778 & 0.8567 & 0.0297 \\
+      \midrule
+      AP  & GAE      & 0.9372 & 0.9346 & 0.0071 \\
+          & MLP & 0.8741 & 0.8589 & 0.0248 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+Figure~\ref{fig:link-roc} shows the two ROC curves on the test pairs.
+The GAE curve lies above the MLP curve,
+with the largest separation at low false-positive rates. In this regime,
+the GAE achieves higher true-positive rates for the same false-positive rate,
+indicating better discrimination between true and false links.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=2.2in]{link-roc}
+  \caption[ROC curves on Amazon Computers.]{%
+    ROC curves on the Amazon Computers test pairs for GAE and the MLP-based
+    encoder, with each AUC annotated; the dashed diagonal is
+    the performance of a random score.
+  }
+  \label{fig:link-roc}
+\end{figure}
+
+Although link prediction scores are often used to identify the most likely candidate links,
+enumerating the top co-purchases would add nothing to the comparison pursued here.
+
+The GAE reaches a median AUC of 0.9389 and a median AP of 0.9372, compared with
+0.8778 and 0.8741 for the MLP, an advantage of approximately 6 percentage points on
+both metrics, with roughly half the parameters. The margin is the smallest of
+the three tasks, and the reason is instructive: the product features alone
+provide substantial predictive signal for co-purchase, so an encoder that ignores
+the graph already ranks pairs well. Message passing improves the ranking further by
+encoding structural information from neighboring nodes into the embeddings.
+
+\section{Graph Classification with GIN}
+\label{sec:gin-implementation}
+
+The third implementation addresses graph classification. GIN
+(Section~\ref{sec:gin}) and an MLP are trained to predict whether
+a chemical compound is active or inactive in the NCI1 benchmark.
+
+\subsection{The NCI1 Dataset}
+\label{sec:nci1-dataset}
+
+NCI1 is a benchmark of chemical compounds from the National Cancer
+Institute that were screened for activity against non-small cell lung
+cancer~\cite{wale2008}. Each graph is a compound: its nodes are atoms, each
+carrying a one-hot vector that encodes the atom type; each edge is undirected
+and represents a chemical bond between two atoms; and each graph is labeled
+active or inactive, with the two classes in near-equal proportion.
+Table~\ref{tab:nci1-stats} summarizes the dataset.
+
+\begin{table}
+  \caption[NCI1 dataset.]{%
+    The NCI1 dataset as served by PyTorch Geometric.
+  }
+  \label{tab:nci1-stats}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Property & Value \\
+      \midrule
+      Graphs                        & 4{,}110 \\
+      Average nodes per graph       & 29.87 \\
+      Average edges per graph       & 32.3 \\
+      Average degree                & 2.16 \\
+      Node feature dimension        & 37 \\
+      Classes                       & 2 \\
+      Class balance                 & 2{,}053 / 2{,}057 \\
+      Split (train/val/test graphs) & 80\% / 10\% / 10\% \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The dataset is provided as a benchmark through PyTorch Geometric, so no
+additional cleaning is performed. No additional transformation is required,
+since node features are already one-hot encoded.
+
+The split is defined over graphs. A seeded, stratified sampling assigns 80\%
+of the graphs to training, 10\% to validation, and 10\% to test, preserving
+the class proportions in each subset. This allocation balances the need to maximize
+the number of graphs available for parameter learning with the need to retain
+evaluation subsets large enough to reduce the variability of the resulting estimates.
+The setting is inductive (Section~\ref{sec:transductive-inductive}): the graphs on
+which the model is evaluated are disjoint from those on which it is trained,
+and the shared parameters of the message-passing layers are what allow
+the model to generalize to graphs it has never seen.
+
+\subsection{Model and Training}
+\label{sec:gin-training}
+
+Table~\ref{tab:gin-model} specifies both models. GIN stacks three layers of the
+update~\eqref{eq:gin}, each with a two-layer MLP and a fixed $\epsilon = 0$ as its
+update function; the MLP baseline applies three layers to every node independently,
+which gives it about twice as many trainable parameters as GIN. Each update function
+applies batch normalization~\cite{ioffe2015} before the activation to stabilize the
+intermediate representations during training; the MLP baseline applies the same
+normalization between its layers, so this component is also shared by both models.
+Both models are then followed by the shared sum readout~\eqref{eq:readout} and the
+same classification head, making the graph-level pipeline identical
+except for the message passing.
+
+\begin{table}
+  \caption[Model configuration, graph classification.]{%
+    Model configuration for graph classification on NCI1.
+  }
+  \label{tab:gin-model}
+  \begin{center}
+    \small
+    \begin{tabular}{lcc}
+      \toprule
+      Component            & GIN               & MLP \\
+      \midrule
+      Layers                    & 3 GIN layers & 3 MLP layers \\
+      Hidden dimensions     & 64                & 256 / 128 / 64 \\
+      $\epsilon^{(k)}$     & 0 (fixed)         & --- \\
+      Normalization        & \multicolumn{2}{c}{batch normalization} \\
+      Hidden activation      & \multicolumn{2}{c}{ReLU} \\
+      Readout              & \multicolumn{2}{c}{sum} \\
+      Classification head  & \multicolumn{2}{c}{1 linear} \\
+      Output dimension   & \multicolumn{2}{c}{2} \\
+      Trainable parameters & 24{,}130          & 51{,}906 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+Table~\ref{tab:gin-training} specifies the optimization,
+identical for both models. Both models produce class probabilities
+through a softmax transformation and are trained using cross-entropy loss
+with no regularization. Training uses a mini-batch size of 32, since the dataset
+consists of many independent graphs rather than a single graph.
+
+\begin{table}
+  \caption[Training configuration, graph classification.]{%
+    Training configuration for graph classification on NCI1, identical for
+    both models.
+  }
+  \label{tab:gin-training}
+  \begin{center}
+    \small
+    \begin{tabular}{lr}
+      \toprule
+      Parameter     & Value \\
+      \midrule
+      Loss             & Cross-entropy \\
+      Optimizer     & Adam \\
+      Learning rate & 0.01 \\
+      Weight decay  & 0 \\
+      Dropout       & 0 \\
+      Epochs        & 200 \\
+      Batch size    & 32 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The validation set is evaluated at every epoch, and the parameters achieving
+the highest validation accuracy are retained. The results reported in the
+next subsection are obtained from the selected checkpoint evaluated
+on the test graphs.
+
+\subsection{Results}
+\label{sec:gin-results}
+
+Figure~\ref{fig:graph-loss} shows the loss over training. The training dynamics
+differ substantially between the two models. The GIN training loss decreases steadily
+throughout training. Its validation loss reaches a minimum after roughly 50 epochs and
+then increases gradually while becoming more variable. This rise does not by itself indicate
+a loss of classification performance: the cross-entropy grows when
+the model becomes more confident on the graphs it misclassifies.
+Since model selection is based on validation accuracy rather than on validation loss,
+training is not stopped at that minimum, and the retained checkpoint is the one that classifies
+the validation graphs best. In contrast, the MLP training loss decreases for only
+a few epochs before flattening near 0.62, where it remains for the rest of training;
+its validation loss exhibits the same behavior. The absence of a gap between training
+and validation loss indicates that the MLP does not overfit; instead, its early plateau
+is consistent with underfitting, suggesting that the available node features alone
+are insufficient for further improvement under this architecture.
+
+\begin{figure}
+  \centering
+  \includegraphics{graph-loss}
+  \caption[Training and validation loss on NCI1.]{%
+    Training (left) and validation (right) loss per epoch on NCI1 for GIN and
+    the MLP. Each panel is scaled to its own data.
+  }
+  \label{fig:graph-loss}
+\end{figure}
+
+Performance is measured by accuracy over the held-out graphs. Accuracy provides
+a global measure of classification effectiveness, while the confusion matrices
+complement this metric by showing how errors are distributed across classes.
+This reveals potential differences in classification behavior between active and
+inactive compounds. Table~\ref{tab:gin-results} reports the test accuracy across
+ten seeds.
+
+\begin{table}
+  \caption[GIN against the MLP on NCI1.]{%
+    Test accuracy on NCI1, over ten seeds.
+  }
+  \label{tab:gin-results}
+  \begin{center}
+    \small
+    \begin{tabular}{lccc}
+      \toprule
+      Model    & Median & Mean & Std \\
+      \midrule
+      GIN      & 0.8199 & 0.8168 & 0.0166 \\
+      MLP     & 0.6496 & 0.6477 & 0.0277 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+GIN reaches a median accuracy of 0.8199, compared with 0.6496 for the MLP,
+an advantage of approximately 17 percentage points despite using roughly half
+the parameters. The gap reflects the information available to each
+architecture. With one-hot atom features and no access to connectivity before
+the readout, the structure-blind MLP can distinguish graphs only through their
+node attributes; graphs with the same multiset of node features receive identical
+representations regardless of their connectivity. GIN, in contrast, aggregates
+neighborhood information before the graph-level readout, allowing its
+representations to incorporate structural patterns.
+The results show that message passing provides an advantage when
+there is an informative underlying graph structure.
+
+\begin{figure}
+  \centering
+  \includegraphics{graph-confusion}
+  \caption[Confusion matrices on NCI1.]{%
+    Row-normalized confusion matrices on the NCI1 test graphs for GIN (left)
+    and the MLP (right), under a shared color scale.
+  }
+  \label{fig:graph-confusion}
+\end{figure}
+
+Figure~\ref{fig:graph-confusion} decomposes the errors. GIN classifies both
+active and inactive compounds correctly in approximately four out of five
+cases. The MLP achieves substantially better performance on inactive compounds
+than on active ones, for which its predictions are close to chance. This behavior is
+consistent with the limitations of a structure-blind model when the task
+requires information beyond node attributes.
