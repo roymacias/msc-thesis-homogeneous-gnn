@@ -67,23 +67,21 @@ isolation but through its connections to other entities: in a citation network
 the subject of a paper is reflected in the papers it cites, and in a molecule
 the role of an atom is determined by the atoms bonded to it. The inductive bias
 appropriate to graphs is therefore the assumption that a node is characterized
-by its neighborhood --- that the information relevant to a node resides in the
-nodes adjacent to it and in the structure connecting them. This assumption is
+by its neighborhood --- that the information relevant to a node resides in the node itself,
+in the nodes adjacent to it, and in the structure connecting them. This assumption is
 the \textit{relational inductive bias}~\cite[-7.5pc]{battaglia2018}.
 
-The relational inductive bias is the graph counterpart of the locality that the
-CNN encodes, and the comparison is exact in one respect and instructive in its
-difference. Both assume that an entity is informed by what lies near it rather
-than by everything at once, and both therefore read from a local region rather
-than the whole input. The difference lies in what counts as local. On a grid,
-locality is geometric: a pixel's neighbors are the pixels at fixed offsets
-around it, the same offsets everywhere, so the notion of a local window is
-defined once and applied uniformly. On a graph there are no fixed offsets and no
-uniform window. A node's neighborhood is whatever the edges make it,
-varying in size from one node to the next. The
-relational inductive bias retains the principle of locality while discarding the
-regular geometry that made it simple to express on a grid; locality on a graph
-is defined by adjacency, not by position.
+The relational inductive bias is the graph counterpart of the locality that the CNN encodes,
+and the comparison is exact in one respect and instructive in its difference. Both assume
+that an entity is informed by what lies near it rather than by everything at once,
+and both read from a local region rather than the whole input. The difference lies in what
+counts as local. On a grid, locality is geometric: a pixel's neighbors are the pixels at fixed
+offsets around it, the same offsets everywhere, so a local window is defined once and
+applied uniformly. On a graph there are no fixed offsets and no uniform window.
+A node's neighborhood is whatever the edges make it, varying in size from one node to
+the next. The relational inductive bias retains locality while discarding the regular geometry
+that made it simple to express on a grid; locality on a graph is
+defined by adjacency, not by position.
 
 Adjacency, however, fixes only which nodes are neighbors, not the order in which
 they are listed. A neighborhood is a set, and a set has no first element. The
