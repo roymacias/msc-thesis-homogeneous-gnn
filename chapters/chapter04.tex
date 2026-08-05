@@ -14,7 +14,7 @@ operate on graphs.
 \section{The Multilayer Perceptron}
 \label{sec:mlp}
 
-The \textit{multilayer perceptron} (MLP) is the elementary feedforward neural
+The \textit{multilayer perceptron} (MLP) is the elementary neural
 network. It maps a fixed-size input vector to an
 output vector through a sequence of layers, each applying a linear
 transformation followed by a nonlinear function~\cite{bishop2024}.
@@ -164,6 +164,18 @@ form a single input vector, these matrices are flattened — their entries read
 out in order and laid end to end — and concatenated. This at once runs into two
 obstructions.
 
+\begin{figure}
+  \centering
+  \includegraphics{variable-neighborhood}
+  \caption[Neighborhoods of varying size.]{%
+    Two nodes with neighborhoods of different sizes: the
+    node on the left has three neighbors, the node on the right has five. A model
+    that processes a node together with its neighbors must accept inputs of
+    varying size, which a multilayer perceptron cannot.
+  }
+  \label{fig:variable-neighborhood}
+\end{figure}
+
 The first obstruction concerns size. The flattened adjacency matrix has $n^2$
 entries and the flattened feature matrix has $n \times d$; the length of the
 resulting input vector therefore grows with the number of nodes and differs
@@ -177,18 +189,6 @@ neighborhood-based input has no fixed size either
 size}: neither across graphs nor across the nodes of a single graph is the
 number of entities fixed, whereas the multilayer perceptron demands a
 fixed-dimensional input.
-
-\begin{figure}
-  \centering
-  \includegraphics{variable-neighborhood}
-  \caption[Neighborhoods of varying size.]{%
-    Two nodes with neighborhoods of different sizes: the
-    node on the left has three neighbors, the node on the right has five. A model
-    that processes a node together with its neighbors must accept inputs of
-    varying size, which a multilayer perceptron cannot.
-  }
-  \label{fig:variable-neighborhood}
-\end{figure}
 
 The second obstruction concerns order. As established in
 Chapter~\ref{ch:graph-theory}, the nodes of a graph carry no intrinsic
@@ -204,6 +204,18 @@ no means of recognizing that the choice is arbitrary. This is the problem of
 \textit{node ordering}: the flattened representation imposes an order that the
 graph does not have.
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{relabeling}
+  \caption[The same graph under two node orderings.]{%
+    A single graph drawn twice with its nodes indexed in two different orders.
+    Each ordering produces a different adjacency matrix, and flattening each
+    matrix produces a different input vector. A multilayer perceptron receives
+    the two vectors as unrelated inputs, although they encode the same graph.
+  }
+  \label{fig:relabeling}
+\end{figure*}
+
 Faced with these obstructions, one might abandon the adjacency matrix
 altogether and take the second approach: present each node to the network on
 its own, using only its feature vector $\mathbf{x}_i$, and predict the node's
@@ -218,18 +230,6 @@ cites, and a model that sees a node in isolation discards exactly this
 evidence. This is the problem of \textit{missing relational structure}: the
 only input that fits a multilayer perceptron is one from which the relations
 have been removed.
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{relabeling}
-  \caption[The same graph under two node orderings.]{%
-    A single graph drawn twice with its nodes indexed in two different orders.
-    Each ordering produces a different adjacency matrix, and flattening each
-    matrix produces a different input vector. A multilayer perceptron receives
-    the two vectors as unrelated inputs, although they encode the same graph.
-  }
-  \label{fig:relabeling}
-\end{figure*}
 
 The two most natural encodings thus fail in opposite ways. Including the
 adjacency matrix preserves the structure but breaks on variable size and node
