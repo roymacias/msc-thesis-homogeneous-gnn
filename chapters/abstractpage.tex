@@ -9,5 +9,33 @@
     \vspace{0.9cm}
     \textcolor{itesolblue}{\textbf{Abstract}}
 \end{center}
-Here
+Graph-structured data describes a domain as a set of entities together with the
+relations among them, a form that tabular, grid, and sequential representations
+do not capture: graphs vary in size, admit no canonical ordering of their
+elements, and connect each entity to a different number of others. A standard
+neural network, whose input dimension and coordinate ordering are fixed, cannot
+operate on such data without discarding the relational structure that carries
+much of the signal. Graph Neural Networks (GNNs) are neural network
+architectures designed to operate directly on graphs, respecting these
+properties instead of discarding them.
+
+This work provides a self-contained reference on GNNs for homogeneous graphs
+under the message-passing framework. The foundations are established first: how
+graphs represent relational data, why the multilayer perceptron (MLP) fails on
+it, and the permutation invariance and equivariance that any layer defined on a
+graph must satisfy. The message-passing framework is then developed as the
+unifying formulation, decomposed into message, aggregation, and update
+functions, together with the receptive field that successive layers induce, the
+distinction between the transductive and inductive settings, and the ceiling on
+expressive power.
+
+Three representative architectures are derived as instances of the framework,
+one for each standard level of graph learning: the Graph Convolutional Network (GCN) for
+node classification, the Graph Auto-Encoder (GAE) for link prediction, and the
+Graph Isomorphism Network (GIN) for graph classification. Each is implemented in
+PyTorch Geometric on a standard benchmark --- Cora, Amazon Computers, and NCI1,
+respectively --- and evaluated against an MLP baseline that predicts from node
+features alone; in every task the architecture that uses the graph improves on
+the baseline that does not. The limitations of the framework are examined last:
+oversmoothing, oversquashing, heterophily, and the bound on expressive power.
 \end{fullwidth}

@@ -9,5 +9,37 @@
     \vspace{0.9cm}
     \textcolor{itesolblue}{\textbf{Resumen}}
 \end{center}
-En esta página debes escribir el abstract pero en español.
+Los datos estructurados como grafos describen un dominio como un conjunto de
+entidades junto con las relaciones entre ellas, una forma que las
+representaciones tabulares, en rejilla y secuenciales no capturan: los grafos
+varían en tamaño, no admiten un ordenamiento canónico de sus elementos y
+conectan cada entidad con un número distinto de otras. Una red neuronal
+estándar, cuya dimensión de entrada y ordenamiento de coordenadas son fijos, no
+puede operar sobre estos datos sin descartar la estructura relacional que porta
+buena parte de la señal. Las redes neuronales de grafos (GNN) son arquitecturas
+de redes neuronales diseñadas para operar directamente sobre grafos, respetando
+estas propiedades en lugar de descartarlas.
+
+Este trabajo constituye una referencia autocontenida sobre las GNN para grafos
+homogéneos bajo el marco de paso de mensajes. Primero se establecen los
+fundamentos: cómo los grafos representan datos relacionales, por qué el
+perceptrón multicapa (MLP) fracasa ante ellos, y la invarianza y equivarianza a
+permutaciones que debe satisfacer toda capa definida sobre un grafo. A
+continuación, se desarrolla el marco de paso de mensajes como la formulación
+unificadora, descompuesto en las funciones de mensaje, agregación y
+actualización, junto con el campo receptivo que inducen capas sucesivas, la
+distinción entre los escenarios transductivo e inductivo, y el techo de la
+capacidad expresiva.
+
+Se derivan tres arquitecturas representativas como instancias del marco, una por
+cada nivel estándar de aprendizaje sobre grafos: la Graph Convolutional Network (GCN)
+para clasificación de nodos, el Graph Auto-Encoder (GAE) para predicción de
+enlaces, y la Graph Isomorphism Network (GIN) para clasificación de grafos. Cada
+una se implementa en PyTorch Geometric sobre un conjunto de datos de referencia
+estándar --- Cora, Amazon Computers y NCI1, respectivamente --- y se evalúa
+frente a un modelo de referencia MLP que predice únicamente a partir de las
+características de los nodos; en todas las tareas la arquitectura que usa el
+grafo mejora a la que no lo usa. Por último, se examinan las limitaciones del
+marco: sobresuavizado (\textit{oversmoothing}), sobrecompresión
+(\textit{oversquashing}), heterofilia y la cota sobre la capacidad expresiva.
 \end{fullwidth}
