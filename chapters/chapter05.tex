@@ -93,21 +93,21 @@ for the concepts of the next two sections.
 \section{Invariance and Equivariance}
 \label{sec:invariance-equivariance}
 
-The requirement that a model not depend on an arbitrary choice in its input is
+The requirement that a model does not depend on an arbitrary choice in its input is
 made precise by the notions of \textit{invariance} and \textit{equivariance}. 
 Both describe how a function responds to transformations of its input, 
 and they are defined for any function and any transformation 
 before being specialized to graphs.
 
 Let $f$ be a function and let $g$ denote a transformation applied to its input.
-The function $f$ is \textit{invariant} to $g$ when transforming the input leaves
+The function $f$ is \textit{invariant} to $g$ if transforming the input leaves
 the output unchanged:
 \begin{equation}
   f(g \cdot \mathbf{x}) = f(\mathbf{x}).
   \label{eq:invariance}
 \end{equation}
 The transformation is applied to the input, and the output does not move. The
-function $f$ is \textit{equivariant} to $g$ when transforming the input
+function $f$ is \textit{equivariant} to $g$ if transforming the input
 transforms the output in the same way:
 \begin{equation}
   f(g \cdot \mathbf{x}) = g \cdot f(\mathbf{x}).
