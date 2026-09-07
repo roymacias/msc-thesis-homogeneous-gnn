@@ -239,7 +239,7 @@ whole graph requires instead a single output unchanged by relabeling --- the
 permutation invariance of~\eqref{eq:permutation-invariance} --- and this is
 obtained by reducing the per-node representations to one vector with a further
 order-insensitive operation; that operation, called \textit{readout}, is the one 
-used by graph-level architectures, and is developed in Chapter~\ref{ch:architectures}.
+used by graph-level architectures, and is introduced in Chapter~\ref{ch:architectures}.
 
 \section{Receptive Field and Depth}
 \label{sec:receptive-field}
@@ -343,15 +343,25 @@ different.
 There is a classical procedure for distinguishing non-isomorphic graphs that
 was introduced before GNNs and turns out to mirror message passing closely.
 The one-dimensional Weisfeiler--Leman test, abbreviated \mbox{1-WL}, assigns a
-color to every node and refines these colors iteratively. Initially all nodes
-share a common color. At each round, a node's new color is determined by its
-current color together with the collection of colors of its neighbors; nodes
-that have the same color and whose neighbors have matching collections of colors
-keep a common color, while any difference in the surrounding colors splits them
-apart. The refinement continues until the partition of nodes into colors no
-longer changes. Two graphs for which the refinement process produces 
-different colorings are certainly not isomorphic.
+color to every node and refines these colors iteratively. Initially, all nodes are assigned
+the same color. In each round, the nodes are grouped by their current colors together
+with the colors of their neighbors, one color for each neighbor: a node with two neighbors
+of one color differs from a node with three, since it is the composition of the neighborhood,
+and not merely which colors appear in it, that distinguishes one node from another.
+Each distinct group is then assigned its own color. In the first round, every node
+still has the same color, so the only distinguishing information is the number
+of neighbors, and the first refinement separates nodes by degree. In later
+rounds, a neighbor's color already encodes information about its own local
+structure, allowing this information to propagate outward through the graph.
+Because a node's current color is part of the grouping rule, two nodes that have
+been assigned different colors can never be grouped together again. Each round
+therefore refines the previous grouping and never merges previously distinct
+groups. Since there cannot be more groups than nodes, the process eventually
+stabilizes, meaning that the grouping no longer changes. Two graphs for which the
+refinement process produces different colorings are certainly not isomorphic.
  
+\newpage
+
 The correspondence with message passing is immediate. A round of
 \mbox{1-WL} updates a node's color from its own color and the colors of its
 neighbors; a message-passing layer updates a node's representation from
@@ -425,10 +435,23 @@ carrying no relations, so that each node is independent. There, the neighborhood
 to act on and the aggregation contributes nothing; the update reduces to
 $\mathbf{h}_i^{(k)} = \gamma^{(k)}(\mathbf{h}_i^{(k-1)})$, and each node is
 transformed independently of the rest. When $\gamma^{(k)}$ is itself an MLP,
-the layer becomes an MLP applied separately to every node --- precisely the
-model that Chapter~\ref{ch:nn-limitations} showed to be unable to incorporate
-graph structure, now recovered as the case in which there is no structure to
-incorporate.
+the layer becomes an MLP applied separately to every node
+(Figure~\ref{fig:mlp-degenerate}) --- precisely the model that Chapter~\ref{ch:nn-limitations}
+showed to be unable to incorporate graph structure, now recovered as the case in which
+there is no structure to incorporate.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=0.98\textwidth]{mlp-degenerate}
+  \caption[The MLP as a degenerate case of message passing.]{%
+    A graph with no edges ($\mathbf{A}=\mathbf{0}$) leaves every neighborhood
+    empty, so no node carries relational information. Left: the edgeless graph.
+    Right: with no messages to aggregate, each node reduces to an independent
+    data point, and its feature vector $\mathbf{x}_i$ is transformed by the same
+    MLP separately from the rest.
+  }
+  \label{fig:mlp-degenerate}
+\end{figure}
 
 Read in the other direction, this shows that a message-passing network is a
 generalization of the MLP, with the MLP appearing as a particular instance of
