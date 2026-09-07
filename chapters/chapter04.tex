@@ -98,7 +98,7 @@ or the cross-entropy for classification. The loss is a function of the
 parameters $\theta$, since the prediction $f(\mathbf{x}_i)$ depends on them;
 training is the search for the $\theta$ that minimizes $\mathcal{L}(\theta)$.
  
-That search is carried out by \textit{gradient descent}. The gradient
+That search is usually carried out by \textit{gradient descent}. The gradient
 $\nabla_\theta \mathcal{L}$ points in the direction of steepest increase of the
 loss; moving the parameters in the opposite direction decreases it. Each step
 updates the parameters by
@@ -107,8 +107,8 @@ updates the parameters by
   \label{eq:gradient-descent}
 \end{equation}
 where the scalar $\eta > 0$ is the \textit{learning rate}, controlling the size
-of each step. The gradient itself is computed by \textit{backpropagation}, the
-application of the chain rule across the layers of the
+of each step. The gradient itself is commonly computed by
+\textit{backpropagation}, the application of the chain rule across the layers of the
 network~\cite{bishop2024}; it yields the derivative of the loss with
 respect to every parameter, and is the algorithm that makes training deep
 networks practical.
