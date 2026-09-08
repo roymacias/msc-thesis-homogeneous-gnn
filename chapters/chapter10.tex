@@ -13,7 +13,7 @@ once understood together with its limits, makes available for further study.
 
 The general objective stated in Section~\ref{sec:objectives-scope} was to
 provide a self-contained reference on GNNs for homogeneous graphs under the
-message-passing framework: a single document that develops the theory, presents
+message-passing framework: a single document that assembles the theory, presents
 representative architectures, and evaluates them through reproducible
 implementations. The work meets this objective, and its specific aims were
 addressed in turn across the document.
@@ -51,7 +51,7 @@ the single design space.
 
 The architectures were implemented on standard benchmarks --- Cora for GCN,
 Amazon Computers for GAE, and NCI1 for GIN --- in PyTorch Geometric, with
-reproducible code in a companion repository. Each was evaluated against a
+reproducible code in a companion repository. Each was evaluated against an
 MLP baseline that assumes no graph structure and predicts from node
 features alone. Across all three tasks the architecture that uses the graph
 improves on the baseline that does not, confirming in practice the predictive
@@ -64,11 +64,13 @@ oversquashing, heterophily, and the ceiling on expressive power, highlighting th
 mechanisms that give rise to them and their implications for the design 
 and performance of these models.
 
-The contribution of the work is the reference document itself. Its value lies not in 
-any single result but in the assembly: a path from the motivation for learning on graphs 
-to the limits of the message-passing framework, with the theory, architectures, and their 
-evaluation developed in a consistent notation and continuous line of argument, 
-intended to serve as a foundational resource for the study of the field.
+The contribution of the work is the reference document itself. Its value lies
+not in any single result but in the assembly: a path from the motivation for
+learning on graphs to the limits of the message-passing framework, with the
+theory, architectures, and their evaluation presented in a consistent notation.
+Each formal object is paired with the code that realizes it, and each
+architecture is measured against a baseline that differs from it only in the
+absence of message passing.
 
 \section{Directions for future research}
 \label{sec:future-work}
@@ -129,7 +131,7 @@ Heterogeneous graphs carry several types of nodes and edges.
 Modeling them requires machinery the homogeneous setting does not: 
 transformations specific to each relation type, so that a connection between 
 two kinds of entity is treated differently from a connection between 
-two others~\cite{schlichtkrull2018}. The homogeneous case developed in this work 
+two others~\cite{schlichtkrull2018}. The homogeneous case presented in this work 
 is the prerequisite for these models, which extend message passing to a typed structure.
 
 A different extension changes the unit of prediction. The three tasks of this
@@ -157,7 +159,7 @@ oversquashing --- a distant node is now reachable in a single attention step rat
 many hops --- at the cost of the locality that gives message passing its scalability and inductive bias.
 
 These directions extend the message-passing framework by relaxing assumptions such as locality,
- expressivity limits, or graph homogeneity, as well as applying the same foundations to 
-new domains, tasks, and generative settings. The framework developed in this work is therefore 
+expressivity limits, or graph homogeneity, as well as applying the same foundations to 
+new domains, tasks, and generative settings. The framework presented in this work is therefore 
 not an endpoint but a starting point, providing the basis from which these extensions and 
 applications can be understood and evaluated.
