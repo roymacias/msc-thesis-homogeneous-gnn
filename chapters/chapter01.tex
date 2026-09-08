@@ -51,7 +51,7 @@ social network but a faithful representation: it records exactly
 which entities exist and how they relate, without forcing the data into a shape
 it does not have. A wide range of domains exhibit this kind of relational
 structure, and modeling them explicitly as graphs, rather than ignoring the
-connections, can lead to more accurate predictions. Data
+connections, can lead to better predictions~\cite[3.5pc]{battaglia2018}. Data
 organized in this way is called \textit{graph-structured data}.
 
 Most deep learning models are tailored to the regular structures
@@ -69,17 +69,17 @@ two nodes, or a single label for the graph as a whole. This raises
 the central question: how can a predictive model -- concretely, a neural
 network -- be designed to operate directly on a graph, respecting its variable
 size and its lack of order instead of discarding them? Neural networks built for
-this purpose are called \textit{Graph Neural Networks}, hereafter abbreviated as GNNs.
+this purpose are called \textit{Graph Neural Networks},
+hereafter abbreviated as GNNs~\cite{hamilton2020}.
 
 \section{Objectives and scope}
 \label{sec:objectives-scope}
 
 The general objective of this work is to provide a self-contained
 reference on GNNs for homogeneous graphs under the \textit{message-passing}
-framework: a single document that develops the theory that motivates and defines
-these models, presents representative architectures, 
-evaluates them through reproducible implementations, 
-and serves as a foundational resource for studying the field.
+framework: a single document that assembles the theory that motivates and defines
+these models, presents representative architectures, and 
+evaluates them through reproducible implementations.
 
 Specifically, the work aims to:
 
@@ -90,18 +90,32 @@ Specifically, the work aims to:
   \item develop the message-passing framework as the unifying formulation from
         which GNN architectures are derived;
   \item present representative architectures for the three standard learning
-        tasks on graphs: the Graph Convolutional Network (GCN) for node
-        classification, the Graph Auto-Encoder (GAE) for link prediction, and
-        the Graph Isomorphism Network (GIN) for graph classification;
+        tasks on graphs: the Graph Convolutional Network (GCN)~\cite[-12pc]{kipf2017}
+        for node classification, the Graph Autoencoder (GAE)~\cite[-7.5pc]{kipf2016} for
+        link prediction, and the Graph Isomorphism Network (GIN)~\cite[-4.5pc]{xu2019}
+        for graph classification;
   \item implement the three architectures on standard benchmark datasets
-        (Cora, Amazon Computers, and NCI1) using PyTorch Geometric, ensure
-        reproducibility, evaluate each against a multilayer perceptron baseline,
-        and examine the predictive benefit of explicitly modeling the relational
-        structure of the data;
+        (Cora, Amazon Computers, and NCI1)~\cite[-2.2pc]{sen2008,shchur2018,wale2008}
+        using PyTorch Geometric, ensure reproducibility, and evaluate each
+        against a multilayer perceptron baseline;
   \item examine the principal limitations of GNNs under this framework,
-        including oversmoothing, oversquashing,
-        heterophily, and the ceiling on their expressive power.
+        including oversmoothing~\cite[0.6pc]{li2018},
+        oversquashing~\cite[0.5pc]{alon2021}, heterophily~\cite[0.5pc]{zhu2020}, and the
+        ceiling on their expressive power~\cite[0.5pc]{xu2019}.
 \end{itemize}
+
+The contribution of this work lies not in the material itself, which is
+documented in the literature cited throughout, but in the arrangement of that
+material and in what the experiments and their comparison make visible. The
+theory is presented under a single notation, so that architectures introduced in
+separate papers, each with its own conventions, appear as instances of one
+general formulation rather than as unrelated constructions. Each formal object
+is paired with an executable counterpart, so that a derivation and the code that
+realizes it can be read against each other. And the multilayer perceptron, the
+model whose failure on graphs motivates the framework, is recovered within that
+same framework as what message passing reduces to on a graph with no edges. Both
+models are trained on the same data under the same protocol, which isolates the
+contribution of the graph structure to the prediction.
 
 The graphs considered in this work are treated mainly as
 undirected, meaning their connections carry no direction, and
@@ -124,7 +138,8 @@ The concepts introduced here are defined formally throughout the remainder of th
 \label{sec:document-structure}
 
 This introduction has set out the motivation, objectives, and scope of the
-work. The remainder of the document is organized as follows.
+work, together with what it contributes.
+The remainder of the document is organized as follows.
 
 The first chapters establish the foundations. Chapter~\ref{ch:applications}
 surveys the tasks that graph learning addresses at the node, edge, and graph
@@ -146,7 +161,8 @@ within this framework: GCN for node classification, GAE for link prediction,
 and GIN for graph classification. Chapter~\ref{ch:implementations} turns to
 practice, providing reproducible implementations of these architectures on the
 Cora, Amazon Computers, and NCI1 benchmarks in PyTorch Geometric, comparing each
-against a multilayer perceptron, with the code available in a companion repository.
+against a multilayer perceptron, with the code available
+in a companion repository~\cite{macias2026}.
 
 Chapter~\ref{ch:limitations} examines the limitations of GNNs under the
 message-passing framework, and Chapter~\ref{ch:conclusions} synthesizes the
