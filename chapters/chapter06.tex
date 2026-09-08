@@ -1,4 +1,4 @@
-\chapter{The Message-Passing Framework}
+\chapter{The message-passing framework}
 \label{ch:message-passing}
 \minitoc
 
@@ -10,7 +10,7 @@ a layer that satisfies these properties by design, assembling it from three
 component functions, examining the effects of stacking such layers, and 
 interpreting the resulting formulation as a general design space for GNNs.
 
-\section{From Relational Bias to Neighborhood Aggregation}
+\section{From relational bias to neighborhood aggregation}
 \label{sec:neighborhood-aggregation}
 
 The relational inductive bias of Section~\ref{sec:relational-bias} asserts that a node 
@@ -64,7 +64,7 @@ neighborhood into a fixed vector --- and together they turn the relational induc
 bias into an operation that meets the requirements of the two preceding
 chapters.
 
-\section{The Message-Passing Layer}
+\section{The message-passing layer}
 \label{sec:message-passing-layer}
 
 The ideas developed in the previous section can now be stated formally. A layer of
@@ -92,7 +92,7 @@ matrix $\mathbf{H}^{(k)} \in \mathbb{R}^{n \times d'}$ whose row $i$ is
 $\mathbf{h}_i^{(k)}$; the matrix form is used when a layer is written as a
 single operation on the whole graph.
 
-\subsection{The Message Function}
+\subsection{The message function}
 \label{sec:message-function}
 
 The first function specifies what a neighbor contributes. For a node $i$ and a
@@ -124,7 +124,7 @@ message function allows to pass across the edge before
 neighborhood-level aggregation takes place.
 
 
-\subsection{The Aggregation Function}
+\subsection{The aggregation function}
 \label{sec:aggregation-function}
 
 The message function produces one message for each neighbor of $i$. Since a
@@ -146,7 +146,7 @@ function must be invariant to the ordering of its inputs. The operations
 commonly used --- the sum, the mean, and the maximum, taken coordinatewise ---
 all satisfy this condition, and any of them yields a well-defined aggregation.
 
-\subsection{The Update Function}
+\subsection{The update function}
 \label{sec:update-function}
 
 The aggregated neighborhood does not by itself determine the node's new
@@ -172,7 +172,7 @@ ranges from a simple sum of the two arguments to a learnable combination, a
 question taken up with the design space in
 Section~\ref{sec:design-space}.
 
-\subsection{The General Equation of a Message Passing Layer}
+\subsection{The general equation of a message passing layer}
 \label{sec:general-equation}
 
 Composing the three functions gives the general form of a message-passing
@@ -241,7 +241,7 @@ obtained by reducing the per-node representations to one vector with a further
 order-insensitive operation; that operation, called \textit{readout}, is the one 
 used by graph-level architectures, and is introduced in Chapter~\ref{ch:architectures}.
 
-\section{Receptive Field and Depth}
+\section{Receptive field and depth}
 \label{sec:receptive-field}
 
 A single message-passing layer updates each node from its immediate neighbors.
@@ -291,7 +291,7 @@ produced after the last of the $K$ layers, are the \textit{embeddings} of the
 nodes: the learned vectors that summarize each node together with its
 $K$-hop context, and that serve as the input to the task-specific prediction function.
 
-\section{Transductive and Inductive Learning}
+\section{Transductive and inductive learning}
 \label{sec:transductive-inductive}
  
 The way a message-passing network is trained and evaluated depends on what
@@ -323,7 +323,7 @@ partition is the whole graph rather than a node within a shared structure.
 This is the \textit{inductive} setting, corresponding to the usual notion of
 training on some examples and generalizing to others never seen before.
  
-\section{Expressive Power and the 1-WL Bound}
+\section{Expressive power and the 1-WL bound}
 \label{sec:expressive-power}
  
 The framework constructed so far guarantees that a message-passing layer
@@ -385,7 +385,7 @@ for graph-level tasks in Chapter~\ref{ch:architectures}. The question of what th
 message-passing network can tell apart --- is a limitation of the framework and
 is taken up in Chapter~\ref{ch:limitations}.
  
-\section{The Design Space}
+\section{The design space}
 \label{sec:design-space}
  
 The equation~\eqref{eq:message-passing} is not a single model but a
@@ -396,7 +396,7 @@ what those functions are. Every choice of $\phi^{(k)}$, $\bigoplus$, and
 $\gamma^{(k)}$ that meets the conditions produces a valid layer, and the space
 of such choices is the design space of the framework. 
  
-\subsection{Flexibility of the Framework}
+\subsection{Flexibility of the framework}
 \label{sec:framework-flexibility}
  
 The flexibility of the equation can be seen function by function. The message
@@ -425,7 +425,7 @@ same framework, reoriented from nodes to edges. This generality indicates that
 message passing is not tied to node representations specifically, but is a
 template for computing on graph elements through local aggregation.
  
-\subsection{The MLP as a Degenerate Case}
+\subsection{The MLP as a degenerate case}
 \label{sec:mlp-degenerate}
  
 One point in the design space recovers a familiar model and locates the
@@ -457,7 +457,7 @@ Read in the other direction, this shows that a message-passing network is a
 generalization of the MLP, with the MLP appearing as a particular instance of
 the framework.
  
-\subsection{Established Architectures as Instances}
+\subsection{Established architectures as instances}
 \label{sec:established-architectures}
  
 The design space is not merely a catalog of possibilities; it is populated by

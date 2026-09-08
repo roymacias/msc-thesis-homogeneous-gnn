@@ -1,4 +1,4 @@
-\chapter{Inductive Bias, Invariance, and Equivariance}
+\chapter{Inductive bias, invariance, and equivariance}
 \label{ch:inductive-bias}
 \minitoc
 
@@ -11,7 +11,7 @@ successful architectures as evidence that each encodes the structure of its own
 domain. It then identifies the inductive bias appropriate to graphs and gives
 the two symmetry conditions that express it formally.
 
-\section{Inductive Bias in Neural Architectures}
+\section{Inductive bias in neural architectures}
 \label{sec:inductive-bias}
 
 A model trained on a finite set of examples must, to be useful, make
@@ -59,7 +59,7 @@ the architecture is wired rather than learned from data. The question
 this chapter must answer follows immediately: what is the structure of a graph,
 and what inductive bias matches that structure.
 
-\section{The Relational Inductive Bias}
+\section{The relational inductive bias}
 \label{sec:relational-bias}
 
 The defining structure of a graph is relational. An entity is not described in
@@ -90,7 +90,7 @@ not, and must not, depend on the order in which that information is enumerated,
 because the graph supplies no such order. Making this requirement precise calls
 for the concepts of the next two sections.
 
-\section{Invariance and Equivariance}
+\section{Invariance and equivariance}
 \label{sec:invariance-equivariance}
 
 The requirement that a model does not depend on an arbitrary choice in its input is
@@ -128,7 +128,7 @@ $f$ must be invariant; when the quantity to be predicted is attached to parts of
 the input that the transformation moves, $f$ must be equivariant, so that the
 prediction moves with the part it describes.
 
-\section{Permutation Invariance and Equivariance on Graphs}
+\section{Permutation invariance and equivariance on graphs}
 \label{sec:permutation}
 
 The transformation that matters for graphs is the reordering of nodes. As

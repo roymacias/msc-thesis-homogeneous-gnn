@@ -1,4 +1,4 @@
-\chapter{Representative Architectures for Node-, Edge-, and Graph-Level Tasks}
+\chapter{Representative architectures for node-, edge-, and graph-level tasks}
 \label{ch:architectures}
 \minitoc
 
@@ -15,7 +15,7 @@ formed for node-level tasks, how a pair of nodes is scored for edge-level tasks,
 and how the per-node representations are reduced to a single vector for
 graph-level tasks.
 
-\section{Node-Level Learning}
+\section{Node-level learning}
 \label{sec:node-level-arch}
 
 A node-level task assigns a prediction to each node of a single graph.
@@ -28,7 +28,7 @@ transductive setting in which such a task is trained. What remains is to specify
 how a prediction is computed from each embedding, and then to fix the three
 functions of the layer.
 
-\subsection{From Embeddings to Predictions}
+\subsection{From embeddings to predictions}
 \label{sec:node-task-elements}
 
 In node classification, each node carries a label drawn from a fixed set of
@@ -53,7 +53,7 @@ node $i$. Because the classifier is shared across nodes and the embeddings are
 produced equivariantly, the prediction attached to a node is unchanged by a
 relabeling of the graph, that is, it moves with the node.
 
-\subsection{The Graph Convolutional Network}
+\subsection{The graph convolutional network}
 \label{sec:gcn}
 
 The \textit{Graph Convolutional Network (GCN)} is the instance of the message-passing
@@ -181,7 +181,7 @@ differ systematically, or when so many layers are stacked that all representatio
 are smoothed toward a common value --- a limitation taken up in
 Chapter~\ref{ch:limitations}.
 
-\section{Edge-Level Learning}
+\section{Edge-level learning}
 \label{sec:edge-level-arch}
 
 An edge-level task makes predictions about pairs of nodes rather than nodes
@@ -193,7 +193,7 @@ elements absent from the node-level case: a way to score a pair of nodes from
 their embeddings, and a way to construct a supervised training signal from a graph
 whose only data is the presence or absence of edges.
 
-\subsection{The Encoder--Decoder Framework}
+\subsection{The encoder--decoder framework}
 \label{sec:encoder-decoder}
 
 The encoder-decoder framework divides a link-prediction model into two stages
@@ -256,7 +256,7 @@ observed edges: a graph has at most $\binom{n}{2}=n(n-1)/2$ possible edges but t
 far fewer actual ones. The standard remedy is \textit{negative sampling}, which draws a random subset 
 of non-edges, comparable in number to the positive edges, so that the training signal remains balanced.
 
-\subsection{The Graph Autoencoder}
+\subsection{The graph autoencoder}
 \label{sec:gae}
 
 The \textit{Graph Autoencoder (GAE)} is the instance of the encoder--decoder framework that
@@ -283,7 +283,7 @@ of unconnected nodes made dissimilar --- which is the arrangement a GCN
 produces by construction, since its smoothing brings the embeddings of adjacent
 nodes together.
 
-\section{Graph-Level Learning}
+\section{Graph-level learning}
 \label{sec:graph-level-arch}
 
 A graph-level task assigns a single prediction to an entire graph. The
@@ -295,7 +295,7 @@ to a single fixed-size vector representing the graph --- and it places a demand 
 message-passing layer that the previous tasks did not, since graph classification requires 
 the layer to preserve the structural information that distinguishes one graph from another.
 
-\subsection{Pooling and Readout}
+\subsection{Pooling and readout}
 \label{sec:pooling-readout}
 
 A message-passing network produces one embedding per node. A graph-level
@@ -334,7 +334,7 @@ collection rather than its average or its extremes. This difference is decisive 
 the architecture that follows, whose design begins from the requirement that no
 distinguishing information be discarded.
 
-\subsection{The Graph Isomorphism Network}
+\subsection{The graph isomorphism network}
 \label{sec:gin}
 
 The \textit{Graph Isomorphism Network (GIN)} is the instance of the 

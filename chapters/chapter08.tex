@@ -1,4 +1,4 @@
-\chapter{Implementations and Experimental Evaluation}
+\chapter{Implementations and experimental evaluation}
 \label{ch:implementations}
 \minitoc
 
@@ -13,7 +13,7 @@ establishes the methodology common to all three implementations and then
 presents each in turn: GCN on the Cora benchmark dataset for node classification,
 GAE on Amazon Computers for link prediction, and GIN on NCI1 for graph classification.
 
-\section{Experimental Methodology}
+\section{Experimental methodology}
 \label{sec:methodology}
 
 All three implementations are built in PyTorch
@@ -57,14 +57,14 @@ to reproduce this chapter: the configurations, the dataset loading
 and preparation, the training and evaluation pipeline, the scripts that generate every
 figure and compute every metric, and the exact dependency manifest. 
 
-\section{Node Classification with GCN}
+\section{Node classification with GCN}
 \label{sec:gcn-implementation}
 
 The first implementation addresses node classification. GCN
 (Section~\ref{sec:gcn}) and an MLP are trained to predict the topic of
 each publication in the Cora citation network.
 
-\subsection{The Cora Dataset}
+\subsection{The Cora dataset}
 \label{sec:cora-dataset}
 
 Cora is a citation network of machine-learning publications~\cite{sen2008}.
@@ -113,7 +113,7 @@ Section~\ref{sec:transductive-inductive}, where training has access to the
 full graph structure and all node features, while supervision is provided
 only through the labeled training nodes.
 
-\subsection{Model and Training}
+\subsection{Model and training}
 \label{sec:gcn-training}
 
 Table~\ref{tab:gcn-model} specifies both models. The GCN stacks two
@@ -258,14 +258,14 @@ cluster sizes, only the local clustering within each panel is informative.
 
 \FloatBarrier
 
-\section{Link Prediction with GAE}
+\section{Link prediction with GAE}
 \label{sec:gae-implementation}
 
 The second implementation addresses link prediction. GAE
 (Section~\ref{sec:gae}) and an MLP-based encoder with the same decoder
 are trained to predict co-purchase links on the Amazon Computers graph.
 
-\subsection{The Amazon Computers Dataset}
+\subsection{The Amazon Computers dataset}
 \label{sec:amazon-dataset}
 
 Amazon Computers is a segment of the Amazon co-purchase
@@ -313,7 +313,7 @@ variability of the resulting estimates low. The training setting remains transdu
 all nodes and their features are visible throughout, while only the evaluation edges
 are held out from the training graph.
 
-\subsection{Model and Training}
+\subsection{Model and training}
 \label{sec:gae-training}
 
 Table~\ref{tab:gae-model} specifies both models. The GAE encoder stacks two
@@ -461,14 +461,14 @@ provide substantial predictive signal for co-purchase, so an encoder that ignore
 the graph already ranks pairs well. Message passing improves the ranking further by
 encoding structural information from neighboring nodes into the embeddings.
 
-\section{Graph Classification with GIN}
+\section{Graph classification with GIN}
 \label{sec:gin-implementation}
 
 The third implementation addresses graph classification. GIN
 (Section~\ref{sec:gin}) and an MLP are trained to predict whether
 a chemical compound is active or inactive in the NCI1 benchmark.
 
-\subsection{The NCI1 Dataset}
+\subsection{The NCI1 dataset}
 \label{sec:nci1-dataset}
 
 NCI1 is a benchmark of chemical compounds from the National Cancer
@@ -517,7 +517,7 @@ which the model is evaluated are disjoint from those on which it is trained,
 and the shared parameters of the message-passing layers are what allow
 the model to generalize to graphs it has never seen.
 
-\subsection{Model and Training}
+\subsection{Model and training}
 \label{sec:gin-training}
 
 Table~\ref{tab:gin-model} specifies both models. GIN stacks three layers of the
