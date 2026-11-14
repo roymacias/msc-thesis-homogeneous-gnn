@@ -106,16 +106,22 @@ Specifically, the work aims to:
 
 The contribution of this work lies not in the material itself, which is
 documented in the literature cited throughout, but in the arrangement of that
-material and in what the experiments and their comparison make visible. The
-theory is presented under a single notation, so that architectures introduced in
-separate papers, each with its own conventions, appear as instances of one
-general formulation rather than as unrelated constructions. Each formal object
-is paired with an executable counterpart, so that a derivation and the code that
-realizes it can be read against each other. And the multilayer perceptron, the
-model whose failure on graphs motivates the framework, is recovered within that
-same framework as what message passing reduces to on a graph with no edges. Both
-models are trained on the same data under the same protocol, which isolates the
-contribution of the graph structure to the prediction.
+material and in the experimental analysis built on it. The theory is presented
+under a single notation, so that architectures introduced in separate papers,
+each with its own conventions, appear as instances of one general formulation
+rather than as unrelated constructions. Each formal object is paired with an
+executable counterpart, so that a derivation and the code that realizes it can
+be read against each other. And the multilayer perceptron, the model whose
+failure on graphs motivates the framework, is recovered within that same
+framework as what message passing reduces to on a graph with no edges.
+
+This last point defines the role of the experiments: the multilayer perceptron
+is a baseline that receives the data of each node but nothing about its
+connections. Each architecture is compared against it under a common protocol
+and over runs with different seeds, and the comparison is analyzed rather than
+only reported: in each experiment, the advantage of the architecture is related
+to how much the connections add to what the data of the nodes already provide,
+and it is obtained with models of roughly half the size of their baselines.
 
 The graphs considered in this work are treated mainly as
 undirected, meaning their connections carry no direction, and
