@@ -405,13 +405,17 @@ rescaling the Laplacian with the node degrees,
 \end{equation}
 where $\mathbf{I}$ is the identity matrix and $\mathbf{D}^{-1/2}$ is the
 diagonal matrix of inverse square-root
-degrees.\marginnote[-0.5pc]{For a node of degree zero the corresponding entry of
-$\mathbf{D}^{-1/2}$ is taken to be zero.} It is again symmetric
-and positive semidefinite, so it shares the spectral structure just
-described, while its eigenvalues are confined to the interval
-$[0, 2]$~\cite{chung1997}. Together, these properties make the
-Laplacian a natural bridge between the structure of a graph and the linear
-algebra used to operate on it.
+degrees.\marginnote[-2pc]{For a node of degree zero the corresponding entry of
+$\mathbf{D}^{-1/2}$ is taken to be zero, and the first expression is the one
+that applies; the two expressions coincide when no node is isolated.}
+It is again symmetric and positive semidefinite, so its eigenvalues are real
+and nonnegative, and the multiplicity of the eigenvalue $0$ again equals the
+number of connected components. The constant vector, however, is no longer an
+eigenvector for this eigenvalue: since the rows of $\mathbf{L}_{\mathrm{sym}}$
+do not sum to zero, its place is taken by $\mathbf{D}^{1/2}\mathbf{1}_{n}$.
+Its eigenvalues are confined to the interval $[0, 2]$~\cite{chung1997}.
+Together, these properties make the Laplacian a natural bridge between the
+structure of a graph and the linear algebra used to operate on it.
 
 \FloatBarrier
 \section{Notation summary}
