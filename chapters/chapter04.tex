@@ -7,7 +7,7 @@ examine the foundational model of deep learning: the multilayer perceptron.
 This chapter first assembles the multilayer
 perceptron and the procedure by which it is trained, so that it stands as a
 complete and well-defined object. It then attempts to apply this model to a
-graph and shows that the attempt fails. The reasons for that failure are not
+graph and shows why it is ill-suited to the task. The reasons are not
 incidental: they identify precisely the properties a model must possess to
 operate on graphs.
 
@@ -141,15 +141,15 @@ What matters is that the multilayer perceptron, with its parameters, loss, and t
 procedure, now stands as a complete and trainable object. The remainder of the
 chapter asks whether that object can be applied to a graph.
 
-\section{Why the multilayer perceptron fails on graphs}
+\section{Limitations of the multilayer perceptron on graphs}
 \label{sec:mlp-fails}
 
 The multilayer perceptron assembled above is a function on a fixed-size vector.
 A graph is not a vector. To apply the perceptron to a graph, the graph must
-first be converted into a vector of fixed size, and the difficulty is that no
-such conversion preserves what the graph encodes. This section attempts the
-conversion directly and examines what goes wrong; the failures that surface are
-the substance of the chapter.
+first be converted into a vector of fixed size, and the difficulty is that the direct conversions
+either depend on an arbitrary ordering of the nodes or discard their connections.
+This section attempts the conversion directly and examines what goes
+wrong; the failures that surface are the substance of the chapter.
 
 Consider a node-level task: predicting a property of each node of a graph, as
 in the node classification setting of Chapter~\ref{ch:applications}. There are
@@ -227,9 +227,10 @@ computation at all. The network processes each node as an isolated example. Yet
 the tasks of Chapter~\ref{ch:applications} are relational by nature: in a
 citation network, a paper's topic is informed by the topics of the papers it
 cites, and a model that sees a node in isolation discards exactly this
-evidence. This is the problem of \textit{missing relational structure}: the
-only input that fits a multilayer perceptron is one from which the relations
-have been removed.
+evidence. This is the problem of \textit{missing relational structure}: unless the
+relations are first summarized by hand into additional node features, the
+input that fits a multilayer perceptron is one from which they have been
+removed.
 
 The two most natural encodings thus fail in opposite ways. Including the
 adjacency matrix preserves the structure but breaks on variable size and node

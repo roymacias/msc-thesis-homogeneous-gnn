@@ -13,16 +13,18 @@ Graph-structured data describes a domain as a set of entities together with the
 relations among them, a form that tabular, grid, and sequential representations
 do not capture: graphs vary in size, admit no canonical ordering of their
 elements, and connect each entity to a different number of others. A standard
-neural network, whose input dimension and coordinate ordering are fixed, cannot
-operate on such data without discarding the relational structure that carries
-much of the signal. Graph Neural Networks (GNNs) are neural network
+neural network, whose input dimension and coordinate ordering are
+fixed, does not naturally accommodate such data: the direct ways of applying it
+either depend on an arbitrary ordering of the entities or discard the
+relational structure that carries much of the signal.
+Graph Neural Networks (GNNs) are neural network
 architectures designed to operate directly on graphs, respecting these
 properties instead of discarding them.
 
 This work provides a self-contained reference on GNNs for homogeneous graphs
 under the message-passing framework. The foundations are established first: how
-graphs represent relational data, why the multilayer perceptron (MLP) fails on
-it, and the permutation invariance and equivariance that any layer defined on a
+graphs represent relational data, why the multilayer perceptron (MLP) is ill-suited
+to it, and the permutation invariance and equivariance that any layer defined on a
 graph must satisfy. The message-passing framework is then developed as the
 unifying formulation, decomposed into message, aggregation, and update
 functions, together with the receptive field that successive layers induce, the

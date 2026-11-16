@@ -22,12 +22,13 @@ The foundations that motivate GNNs were established first. Graph-structured
 data was characterized as the natural description of relational domains, and
 the properties that set it apart from tabular, grid, and sequential data ---
 variable size, absence of a canonical ordering, irregular local structure ---
-were shown to be precisely the properties that a standard neural network cannot
-accommodate. The MLP was examined as the concrete case: its
-reliance on a fixed input dimension and a fixed coordinate ordering makes it
-unable to operate on graphs without discarding the very structure that carries
-the signal. From this failure the requirements on any graph model were derived,
-with permutation invariance and equivariance playing a central role.
+were shown to be precisely the properties that a standard neural network does
+not naturally accommodate. The MLP was examined as the concrete case: because
+it relies on a fixed input dimension and a fixed coordinate ordering, the
+direct ways of presenting a graph to it either depend on an arbitrary ordering
+of the nodes or discard the structure that carries the signal. From these
+limitations the requirements on any graph model were derived, with permutation
+invariance and equivariance playing a central role.
 
 On these foundations the message-passing framework was developed as the
 unifying formulation. A node's representation was defined through the repeated
