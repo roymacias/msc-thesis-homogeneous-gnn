@@ -5,12 +5,12 @@
 The architectures of Chapter~\ref{ch:architectures} are now brought to
 experimental evaluation. Each is implemented on a standard benchmark
 and evaluated against an MLP baseline that ignores the structure of the graph,
-so that whatever performance separates them is attributable to the relational
-inductive bias of Section~\ref{sec:relational-bias}, under which the examples
-are related rather than independent. This comparison directly addresses the
-objective stated in Section~\ref{sec:objectives-scope}. The chapter first
-establishes the methodology common to all three implementations and then
-presents each in turn: GCN on the Cora benchmark dataset for node classification,
+so that the comparison shows whether processing that structure, under the
+relational inductive bias of Section~\ref{sec:relational-bias} in which the
+examples are related rather than independent, brings a predictive benefit.
+This comparison directly addresses the objective stated in Section~\ref{sec:objectives-scope}.
+The chapter first establishes the methodology common to all three implementations
+and then presents each in turn: GCN on the Cora benchmark dataset for node classification,
 GAE on Amazon Computers for link prediction, and GIN on NCI1 for graph classification.
 
 \section{Experimental methodology}
@@ -148,8 +148,7 @@ overfit the 140 training labels more severely.
 Table~\ref{tab:gcn-training} specifies the optimization settings, identical for
 both models. Both produce class probabilities through a softmax transformation
 and are trained using cross-entropy loss and the same
-regularization, so the comparison isolates the effect of incorporating graph
-structure through message passing. Dropout~\cite[-2pc]{srivastava2014} and
+regularization. Dropout~\cite[-2pc]{srivastava2014} and
 L2 regularization (weight decay) are used for regularization.
 Training is performed in full-batch mode, where the entire graph is processed
 at every optimization step, as permitted by the transductive setting.
@@ -190,9 +189,9 @@ the training loss, but the MLP reduces it faster and to a lower value.
 On the validation set the two diverge. The GCN validation loss continues its
 decreasing trend throughout training, whereas the MLP validation
 loss settles early while its training loss continues to decrease,
-suggesting overfitting. By incorporating information from neighboring nodes
-through message passing, the GCN exhibits substantially less separation
-between training and validation loss.
+suggesting overfitting. The GCN, which incorporates information from neighboring
+nodes through message passing, exhibits substantially less separation between
+training and validation loss.
 
 Performance is measured by accuracy over the held-out nodes. Accuracy provides
 a global measure of classification effectiveness, while the learned embeddings
@@ -456,7 +455,7 @@ enumerating the top co-purchases would add nothing to the comparison pursued her
 The GAE reaches a median AUC of 0.9389 and a median AP of 0.9372, compared with
 0.8778 and 0.8741 for the MLP, an advantage of approximately 6 percentage points on
 both metrics, with roughly half the parameters. The margin is the smallest of
-the three tasks, and the reason is instructive: the product features alone
+the three tasks, and a plausible reason is that the product features alone
 provide substantial predictive signal for co-purchase, so an encoder that ignores
 the graph already ranks pairs well. Message passing improves the ranking further by
 encoding structural information from neighboring nodes into the embeddings.
@@ -528,8 +527,7 @@ applies batch normalization~\cite{ioffe2015} before the activation to stabilize 
 intermediate representations during training; the MLP baseline applies the same
 normalization between its layers, so this component is also shared by both models.
 Both models are then followed by the shared sum readout~\eqref{eq:readout} and the
-same classification head, making the graph-level pipeline identical
-except for the message passing.
+same classification head.
 
 \begin{table}
   \caption[Model configuration, graph classification.]{%
@@ -653,8 +651,8 @@ node attributes; graphs with the same multiset of node features receive identica
 representations regardless of their connectivity. GIN, in contrast, aggregates
 neighborhood information before the graph-level readout, allowing its
 representations to incorporate structural patterns.
-The results show that message passing provides an advantage when
-there is an informative underlying graph structure.
+In this experiment, processing the bonds between atoms through message
+passing brings a clear predictive benefit over the atom features alone.
 
 \begin{figure}
   \centering
