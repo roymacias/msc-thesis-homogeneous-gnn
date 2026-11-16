@@ -29,12 +29,13 @@ For this reason, no exploratory analysis or additional cleaning is performed,
 and preparation is limited to the transformations and splits described in the
 corresponding section.
 
-No hyperparameter search is performed. Instead, the architectures and optimization
-settings are selected to provide stable learning, seeking configurations that avoid
-underfitting and overfitting as far as each architecture permits. The goal is to ensure
-that neither the GNNs nor the MLPs are disadvantaged by poor configuration,
-so that the comparison isolates the effect of incorporating graph structure
-through message passing.
+A systematic hyperparameter optimization is outside the scope of this work.
+Instead, the architectures and optimization settings are chosen through a
+manual exploration of configurations, judged on the training and validation
+curves, to provide stable learning while avoiding underfitting and overfitting
+as far as each architecture permits, so that neither the GNNs nor the MLPs are
+disadvantaged by poor configuration. Every other element of the pipeline ---
+data, splits, optimization, and evaluation --- is shared by both models.
 
 Reproducibility is enforced through controlled execution conditions.
 All experiments are executed on CPU, avoiding hardware-dependent
@@ -43,14 +44,15 @@ every stochastic component of a run --- the initialization of parameters,
 the sampling of splits, the drawing of negative examples, and other
 operations that consume randomness --- is governed by a single seed,
 so that a run is reproducible once its seed is fixed.
+For a given seed, the GNN and the MLP are trained and evaluated on the same
+split; on Cora, whose split is predefined, the split is also the same across seeds.
 Each experiment is repeated over a fixed set of ten seeds. Reporting
 performance over multiple seeds provides a more robust assessment
 than a single run by accounting for the variability induced
 by stochastic training. For each model, the evaluation metric is summarized by
-its median, mean, and standard deviation across the ten runs. The figures show
-the run corresponding to the median performance, ensuring that every figure
-corresponds to an actual run rather than to an aggregate that
-does not correspond to any individual run.
+its median, mean, and standard deviation across the ten runs. The figures show the run
+with the median performance, so that each figure corresponds to an actual run
+rather than to an aggregate.
 
 The companion repository~\cite{macias2026} contains the implementation required
 to reproduce this chapter: the configurations, the dataset loading
@@ -198,8 +200,6 @@ a global measure of classification effectiveness, while the learned embeddings
 are examined separately to assess whether the representations organize nodes
 according to their classes. Table~\ref{tab:gcn-results} reports the results.
 
-\newpage
-
 \begin{figure}
   \centering
   \includegraphics{node-loss}
@@ -245,7 +245,7 @@ cluster sizes, only the local clustering within each panel is informative.
 
 \begin{figure}
   \centering
-  \includegraphics[width=3.2in]{node-embeddings}
+  \includegraphics[width=3.5in]{node-embeddings}
   \caption[Learned representations on Cora.]{%
     Two-dimensional UMAP projection of the test-node representations learned
     on Cora by GCN (left) and by the MLP (right), colored by class.
@@ -346,9 +346,11 @@ so the encoder is what differs between the two models.
 \end{table}
 
 Table~\ref{tab:gae-training} specifies the optimization, identical for both
-models. Negative examples are resampled at every epoch, with one non-edge
-sampled per training edge. The loss is the binary cross-entropy between the
-reconstructed probabilities~\eqref{eq:gae-reconstruction} and the observed
+models. Negative examples are resampled at every epoch, with one
+non-edge sampled per training edge, drawn from the pairs absent from the full graph so
+that no edge held out for validation or test can enter training as a negative example.
+The loss is the binary cross-entropy between the reconstructed
+probabilities~\eqref{eq:gae-reconstruction} and the observed
 adjacency over the sampled pairs, with no regularization.
 The choice of 400 epochs is deliberate: at that point both models are
 still improving slightly without clear signs of overfitting, as the loss curves
