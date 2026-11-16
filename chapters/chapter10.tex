@@ -53,24 +53,34 @@ The architectures were implemented on standard benchmarks --- Cora for GCN,
 Amazon Computers for GAE, and NCI1 for GIN --- in PyTorch Geometric, with
 reproducible code in a companion repository. Each was evaluated against an
 MLP baseline that assumes no graph structure and predicts from node
-features alone. Across all three tasks the architecture that uses the graph
-improves on the baseline that does not, confirming in practice the predictive
-benefit that the theory anticipates: when the data has an underlying graph structure, 
-the relational structure carries information, and a model built to exploit it extracts signal that a
-feature-only model cannot.
+features alone. In all three experiments, the architecture that uses the
+graph improved on the baseline that does not.
 
 Finally, the limitations of the framework were examined on their own: oversmoothing, 
 oversquashing, heterophily, and the ceiling on expressive power, highlighting the 
 mechanisms that give rise to them and their implications for the design 
 and performance of these models.
 
-The contribution of the work is the reference document itself. Its value lies
-not in any single result but in the assembly: a path from the motivation for
-learning on graphs to the limits of the message-passing framework, with the
-theory, architectures, and their evaluation presented in a consistent notation.
-Each formal object is paired with the code that realizes it, and each
-architecture is measured against a baseline that differs from it only in the
-absence of message passing.
+The work makes two contributions. The first is the reference document itself:
+a path from the motivation for learning on graphs to the limits of the
+message-passing framework, with the theory, architectures, and their
+evaluation presented in a consistent notation, and with each formal object
+paired with the code that realizes it.
+
+The second is the experiments of Chapter~\ref{ch:implementations} together with
+their analysis. Their value lies not in the scores themselves but in what the
+comparison shows across them, each conducted under a common protocol in which
+only the architecture differs: when the data can be adequately modeled as a
+graph, so that the relational inductive bias is appropriate, an architecture
+that processes the connections between nodes, instead of treating each node as
+an isolated example described by its features alone, can bring a predictive
+benefit over one that does not. The size of this benefit varies across the
+experiments. It is smallest on Amazon Computers, where the features are
+informative on their own, and substantially larger on Cora and NCI1, where the
+MLP overfits the few labeled nodes of Cora and underfits the compounds of
+NCI1, whose atom features do not reveal how the atoms are bonded. In every
+experiment, this benefit is obtained with roughly half the trainable
+parameters of the baseline.
 
 \section{Directions for future research}
 \label{sec:future-work}
