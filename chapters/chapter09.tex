@@ -25,8 +25,8 @@ A GCN layer smooths, reducing variation across edges and making representations
 of neighboring nodes more similar (Section~\ref{sec:gcn}). A few layers may be sufficient 
 to align the representations with the labels on a homophilous graph; the difficulty is that 
 smoothing does not stop at a useful point. Applied repeatedly, the operation that makes 
-adjacent nodes more similar makes all nodes similar: as depth grows, the representations 
-within each connected component converge toward a common vector. 
+adjacent nodes more similar makes all nodes similar: as depth grows, the representations
+within each connected component lose the feature information that distinguished the nodes. 
 This is \textit{oversmoothing}, first identified for the GCN 
 as a consequence of its Laplacian smoothing~\cite[11.5pc]{li2018}.
 
@@ -36,8 +36,8 @@ as a consequence of its Laplacian smoothing~\cite[11.5pc]{li2018}.
   \caption[Node representations collapse as depth increases.]{%
     Node representations at increasing depth. With few layers the representations
     of different nodes remain distinct; as layers are stacked, repeated smoothing
-    drives them together, until at large depth the nodes of each connected
-    component converge toward a common representation and can no longer be told apart.
+    drives them together, until at large depth the representations within each
+    connected component lose the feature information that distinguished the nodes.
   }
   \label{fig:oversmoothing}
 \end{figure}

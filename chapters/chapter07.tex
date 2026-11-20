@@ -135,8 +135,8 @@ by applying a first-order approximation to a spectral graph convolution,
 yielding the operator $\mathbf{I} + \mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$
 acting on the node representations before the learnable linear transformation. In
 terms of the symmetric normalized Laplacian of
-Equation~\eqref{eq:normalized-laplacian}, this operator equals
-$2\mathbf{I} - \mathbf{L}_{\mathrm{sym}}$. This is the sense in which the layer is
+Equation~\eqref{eq:normalized-laplacian}, this operator equals, for a graph without
+isolated nodes, $2\mathbf{I} - \mathbf{L}_{\mathrm{sym}}$. This is the sense in which the layer is
 \textit{spectral}: it acts through a fixed function of the graph Laplacian, the operator 
 whose spectrum Section~\ref{sec:laplacian-spectral} showed to be tied to the connectivity of the
 graph. The intermediate steps of this spectral derivation are beyond the present
@@ -149,23 +149,32 @@ addresses a spectral difficulty: the eigenvalues of
 $\mathbf{I} + \mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$ lie in the interval
 $[0, 2]$, so applying it repeatedly, as a deep stack of layers does,
 can amplify the node representations to the point of numerical instability~\cite{kipf2017}.
-Substituting $\tilde{\mathbf{A}}$ for $\mathbf{A}$ and $\tilde{\mathbf{D}}$ for the
-degree matrix of $\mathbf{A}$ shrinks this spectrum, reducing the largest eigenvalue
-to well below $2$ in practice, which stabilizes the repeated
-application~\cite[1pc]{wu2019}.
+Substituting $\tilde{\mathbf{A}}$ for $\mathbf{A}$ and $\tilde{\mathbf{D}}$ for
+the degree matrix of $\mathbf{A}$ gives the propagation operator
+$\mathbf{I} - \tilde{\mathbf{L}}_{\mathrm{sym}}$, where
+$\tilde{\mathbf{L}}_{\mathrm{sym}}$ is the symmetric normalized
+Laplacian~\eqref{eq:normalized-laplacian} of the graph with self-loops. Its
+eigenvalues lie in the interval $(-1, 1]$, so its repeated application no
+longer amplifies the representations~\cite[1pc]{wu2019}.
  
 The spectral reading also explains the effect a GCN layer has on the
 representations. The quadratic form $\mathbf{f}^\top \mathbf{L} \mathbf{f}$ of
 Equation~\eqref{eq:laplacian-quadratic-form} measures how much an assignment of
-values to nodes varies across edges, and the same notion of variation applies to
-$\mathbf{L}_{\mathrm{sym}}$: an eigenvector of
-$\mathbf{L}_{\mathrm{sym}}$ with a large eigenvalue is one whose values vary most
-across edges, and one with a small eigenvalue varies little. The propagation
-operator applies a fixed function of this Laplacian that inverts the order of its
-spectrum, sending the large eigenvalues to small factors and the small eigenvalues
-to large ones, so that the components varying most across edges are attenuated and
-those varying least are preserved. It thus acts as a low-pass filter on the
-graph~\cite{wu2019}, and repeated application reduces the variation across edges,
+values to nodes varies across edges, and the same notion of variation,
+measured on values rescaled by the square
+roots of the degrees, applies to $\tilde{\mathbf{L}}_{\mathrm{sym}}$: an
+eigenvector with a large eigenvalue is one whose values vary most across
+edges, and one with a small eigenvalue varies little. The propagation operator
+multiplies each eigenvector of $\tilde{\mathbf{L}}_{\mathrm{sym}}$ with
+eigenvalue $\tilde{\lambda}$ by the factor $1 - \tilde{\lambda}$. Since
+$\tilde{\lambda}$ lies in $[0, 2)$, this factor equals one only for the
+component that does not vary across edges and has magnitude less than one for
+all others, so every other component is attenuated at each layer. Because the
+self-loops also keep the largest eigenvalue of
+$\tilde{\mathbf{L}}_{\mathrm{sym}}$ well below $2$ in practice, the highest
+frequencies are attenuated faster than the lowest ones, and the operator acts
+as a low-pass filter on the graph~\cite{wu2019},
+and repeated application reduces the variation across edges,
 bringing the representations of adjacent nodes closer together with every layer.
 This is \textit{smoothing}: a GCN layer smooths the node representations over the
 edges of the graph.
@@ -177,8 +186,8 @@ On such a graph, making the representations of adjacent nodes
 more similar aligns the learned representations with the labels, which is why GCN is effective
 for node classification. The same mechanism 
 becomes a liability when the assumption fails --- when adjacent nodes
-differ systematically, or when so many layers are stacked that all representations
-are smoothed toward a common value --- a limitation taken up in
+differ systematically, or when so many layers are stacked that the representations
+lose the feature information that distinguished the nodes --- a limitation taken up in
 Chapter~\ref{ch:limitations}.
 
 \section{Edge-level learning}
@@ -343,7 +352,7 @@ as the framework allows~\cite{xu2019}. Its motivation is the expressive-power qu
 introduced in Section~\ref{sec:expressive-power}: a graph-level model is only as good as 
 its ability to tell non-isomorphic graphs apart, and, as established there, no
 message-passing network can exceed the discriminative power of the \mbox{1-WL} test. 
-GIN is the architecture that reaches this ceiling, and the requirement that fixes its design is 
+GIN is the architecture designed to reach this ceiling, and the requirement that fixes its design is 
 the preservation of neighborhood information through the aggregation.
 
 The requirement can be stated precisely with one notion not yet needed. A
@@ -373,11 +382,17 @@ distinction, giving
 \end{equation}
 where $\operatorname{MLP}^{(k)}$ is the update function of
 the layer, and $\epsilon^{(k)}$ is a scalar, which can be fixed or learnable. 
-The MLP in the update can approximate an injective function of
-its input, so the composition of the sum and the update preserves the distinction
-between different closed neighborhoods. The term $(1 + \epsilon^{(k)})$ keeps the
-node's own representation distinguishable from the aggregate of its neighbors,
-rather than letting the two merge as they do in the closed-neighborhood sum of GCN.
-Together these choices make one GIN layer as discriminating as one round of the
-\mbox{1-WL} refinement of Section~\ref{sec:expressive-power}, which is the most a
-message-passing layer can be.
+When the node features are drawn from a countable set, there exists a
+transformation of the representations under which the sum becomes injective
+over neighborhood multisets, and the MLP, as a universal approximator, can learn
+it. The term $(1 + \epsilon^{(k)})$ keeps the node's own
+representation distinguishable from the aggregate of its neighbors, rather than
+letting the two merge as they do in the closed-neighborhood sum of GCN; this
+holds for infinitely many values of $\epsilon^{(k)}$, and fixing
+$\epsilon^{(k)} = 0$ has been found to generalize at least as well in
+practice. Under these conditions, one GIN layer is as
+discriminating as one round of the \mbox{1-WL} refinement of
+Section~\ref{sec:expressive-power}, which is the most a message-passing layer
+can be; with enough layers and an injective readout, such as the sum of
+Section~\ref{sec:pooling-readout}, the resulting graph representations
+distinguish every pair of graphs that \mbox{1-WL} distinguishes~\cite[-4pc]{xu2019}.

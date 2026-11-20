@@ -45,8 +45,8 @@ particular case of the same framework rather than a separate object.
 The three representative architectures were then derived as instances of the
 framework, one for each standard level of graph learning. GCN was presented for node
 classification, GAE for link prediction through the encoder--decoder view, and
-GIN for graph classification, with injective aggregation motivated as the choice that reaches
-the expressive ceiling the framework permits. Each architecture was obtained by specializing
+GIN for graph classification, with injective aggregation motivated as the choice that, under suitable
+conditions, reaches the expressive ceiling the framework permits. Each architecture was obtained by specializing
 the message, aggregation, and update functions, placing them in
 the single design space.
 
@@ -103,17 +103,17 @@ The ceiling on useful depth imposed by oversmoothing is addressed by
 architectures that give a node access to its earlier, less smoothed
 representations rather than only the most recent one, so that depth can grow
 without the representations collapsing toward a common
-vector~\cite[-5pc]{xu2018}. Oversquashing, the distortion of information from distant 
+direction~\cite[-8pc]{xu2018}. Oversquashing, the distortion of information from distant 
 parts of the graph as it is squeezed through intermediate nodes, is addressed 
 by mitigating the associated bottleneck; one direction replaces local propagation 
 with global attention mechanisms, a direction discussed separately below. 
 Heterophily is met by aggregation schemes that no longer assume neighbors are similar:
 separating a node's own representation from its neighbors' and combining
 information across multiple rounds of neighborhood are designs identified as
-effective precisely where the homophily assumption fails~\cite[-7pc]{zhu2020}. 
+effective precisely where the homophily assumption fails~\cite[-9.5pc]{zhu2020}. 
 The expressivity ceiling set by the \mbox{1-WL} test is raised by computations that refine
 over tuples of nodes rather than single nodes, forming a higher-order hierarchy
-that goes beyond this bound~\cite[-3pc]{morris2019}.
+that goes beyond this bound~\cite[-5.5pc]{morris2019}.
 
 \subsection{Unexplored regions of the design space}
 \label{sec:future-design-space}
@@ -123,10 +123,10 @@ Other parts of that space contain established architectures it did not develop.
 
 The aggregation step was confined to sum, mean, and max. Replacing it with a
 learned, attention-based weighting of neighbors, so that a node determines how much each
-neighbor contributes, yields \textit{Graph Attention Networks (GAT)}~\cite[-5pc]{velickovic2018}.
+neighbor contributes, yields \textit{Graph Attention Networks (GAT)}~\cite[-3.5pc]{velickovic2018}.
 Separating the central node's own representation and learning to aggregate from a
 sampled subset of the neighborhood yields \textit{GraphSAGE}, an architecture
-built for large graphs~\cite[-2pc]{hamilton2017}. Both remain within 
+built for large graphs~\cite{hamilton2017}. Both remain within 
 message passing while exploring regions of its design space, such as learned aggregation 
 and neighborhood sampling.
 
